@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vaultline — игра с кейсами CS2 на токены</title>
+<style>
+:root{--bg:#080b10;--p1:#0d1117;--p2:#121820;--p3:#18202b;--p4:#202a37;--line:rgba(255,255,255,.08);--tx:#b6c2d1;--mut:#7d8ba0;--wh:#fff;--br:#2de6c6;--br2:#14cfae;--gold:#ffc94a;--red:#ff5b5b;--grn:#3ddc84}
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#2a3441 transparent;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(60rem 30rem at 85% -10%,rgba(20,207,174,.09),transparent 60%),radial-gradient(50rem 30rem at -10% 10%,rgba(77,163,255,.06),transparent 60%),var(--bg);background-attachment:fixed;color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{font-family:Rajdhani,"Segoe UI",system-ui,sans-serif;color:var(--wh);margin:0;letter-spacing:.02em}
+button,input,select,textarea{font:inherit;color:inherit}
+small{color:var(--mut)}
+.coin{width:1.05em;height:1.05em;vertical-align:-.17em;flex:none}
+.app{display:flex;min-height:100vh}
+.side{width:224px;flex:none;position:sticky;top:0;height:100vh;padding:16px;background:rgba(13,17,23,.75);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px;z-index:50}
+.logo{display:flex;align-items:center;gap:8px;font:700 22px Rajdhani,system-ui;color:var(--wh);margin:4px 6px 14px;letter-spacing:.06em}
+.logo i{width:28px;height:28px;border-radius:8px;background:var(--p3);display:grid;place-items:center}
+.nav a{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:12px;font-weight:600;color:#8695a8;cursor:pointer;user-select:none}
+.nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav a.on{background:rgba(20,207,174,.14);color:#7af5de;box-shadow:inset 2px 0 0 var(--br)}
+.nav svg{width:18px;height:18px;flex:none}
+.note{margin-top:auto;font-size:11.5px;color:var(--mut);border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:40;display:flex;gap:10px;align-items:center;padding:10px 22px;background:rgba(8,11,16,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .grow{flex:1}
+.bal{display:inline-flex;gap:7px;align-items:center;background:rgba(255,201,74,.1);border:1px solid rgba(255,201,74,.35);color:var(--gold);font-weight:800;font-size:16px;border-radius:12px;padding:7px 14px;cursor:pointer}
+.burger{display:none}
+.view{padding:22px;flex:1}
+.foot{padding:14px 22px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mut)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);padding:9px 14px;border-radius:12px;font-weight:700;cursor:pointer;transition:.2s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.1)}
+.btn.pri{background:linear-gradient(#2de6c6,#0ea98e);color:#06201b;border-color:transparent}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.gold{background:linear-gradient(#ffd75e,#e6a21f);color:#2a1c00;border-color:transparent}
+.btn.dng{background:rgba(255,91,91,.14);border-color:rgba(255,91,91,.4);color:#ffb0b0}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.in{width:100%;background:var(--p1);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px 12px;color:#fff}
+.in:focus{outline:2px solid rgba(45,230,198,.3);border-color:rgba(45,230,198,.6)}
+.panel{background:rgba(18,24,32,.88);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px -16px rgba(0,0,0,.7)}
+.pad{padding:16px}
+.hd{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.hd h1{font-size:32px}
+.hd p{margin:4px 0 0;color:var(--mut);max-width:700px}
+.grid{display:grid;gap:14px}
+.g-cases{grid-template-columns:repeat(5,minmax(0,1fr))}
+.g-items{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.g-sm{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.chip{display:inline-block;background:rgba(255,255,255,.07);border-radius:7px;padding:1px 6px;font-size:11px;font-weight:700;margin-right:4px}
+.chip.st{background:rgba(255,140,40,.2);color:#ffb070}
+.coins{color:var(--gold);font-weight:800;display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
+.card{display:block;text-align:left;padding:9px;background:rgba(18,24,32,.88);border:1px solid var(--line);border-radius:16px;cursor:pointer;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .25s;width:100%;position:relative}
+.card:hover{transform:translateY(-3px);border-color:var(--rc);box-shadow:0 14px 36px -18px var(--rc)}
+.card.sel{outline:2px solid var(--br);background:rgba(20,207,174,.1)}
+.card .im{aspect-ratio:4/3;border-radius:11px;display:grid;place-items:center;overflow:hidden;position:relative}
+.card img{width:100%;height:100%;object-fit:contain;padding:6px;transition:transform .35s;filter:drop-shadow(0 8px 12px rgba(0,0,0,.5))}
+.card:hover img{transform:scale(1.08) rotate(-2deg)}
+.card .w{font-size:11px;font-weight:700;text-transform:uppercase;color:#8695a8;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .n{font:600 16px Rajdhani,system-ui;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .r{font-size:11.5px;font-weight:600;display:flex;justify-content:space-between;gap:4px;align-items:center}
+.card .ck{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:7px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:13px;color:#06201b;z-index:2}
+.card.sel .ck{background:var(--br);border-color:var(--br)}
+.sk{position:relative;overflow:hidden;background:#171d26;border-radius:14px}
+.sk:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);animation:sh 1.4s infinite}
+@keyframes sh{to{transform:translateX(100%)}}
+.state{padding:40px 20px;text-align:center}
+.state h3{font-size:22px;margin-bottom:6px}
+.state p{color:var(--mut);margin:0 auto 14px;max-width:520px}
+.warn{border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fde68a;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.pg{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.tb{padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);cursor:pointer;font-weight:700;color:#9fb0c4;user-select:none}
+.tb:hover{color:#fff;background:rgba(255,255,255,.09)}
+.tb.on{background:rgba(20,207,174,.16);color:#7af5de;border-color:rgba(45,230,198,.5)}
+.tb em{font-style:normal;opacity:.6;margin-left:5px;font-weight:600;font-size:12px}
+.sect{margin-bottom:34px}
+.sect-h{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.sect-h h2{font-size:26px}
+.sect-h p{margin:0;color:var(--mut);flex:1;min-width:180px}
+/* covers */
+.cwrap{display:block;cursor:pointer}
+.cover{--ta:#2de6c6;--tb:#7af5de;position:relative;isolation:isolate;overflow:hidden;aspect-ratio:4/5;border-radius:18px;border:1px solid rgba(255,255,255,.08);transition:box-shadow .3s,border-color .3s,transform .3s}
+.cover.hero{aspect-ratio:16/9;border-radius:24px}
+.cwrap:hover .cover,.cover:hover{border-color:var(--ta);box-shadow:0 0 0 1px var(--ta),0 16px 52px -14px var(--ta)}
+.cwrap:hover .cover{transform:translateY(-4px)}
+.cbg{position:absolute;inset:0;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.cwrap:hover .cbg,.cover:hover .cbg{transform:scale(1.1)}
+.cpat{position:absolute;inset:0;animation:drift 14s linear infinite;animation-play-state:paused}
+.cwrap:hover .cpat,.cover:hover .cpat,.cover.hero .cpat{animation-play-state:running}
+.cwrap:hover .cpat{animation-duration:6s}
+@keyframes drift{to{background-position:120px 60px}}
+.cglow,.ctop{position:absolute;inset:0}
+.mono{position:absolute;inset:0;display:grid;place-items:center;font:700 8rem/1 Rajdhani,system-ui;color:rgba(255,255,255,.07);user-select:none}
+.hero .mono{font-size:14rem}
+.cwpn{position:absolute;left:50%;top:10%;width:84%;translate:-50% 0}
+.hero .cwpn{width:40%}
+.cweapon{width:100%;object-fit:contain;display:block;transform:translate(var(--tx),var(--ty)) rotate(var(--r)) scale(var(--s,1));transition:transform .55s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 14px 18px rgba(0,0,0,.55)) drop-shadow(0 0 18px var(--glow))}
+.cwrap:hover .cweapon,.cover:hover .cweapon{transform:translate(var(--tx),var(--ty)) rotate(calc(var(--r)*1.3)) scale(calc(var(--s,1)*1.12))}
+.ccrate{position:absolute;left:50%;bottom:14%;width:56%;transform:translateX(-50%);z-index:20;object-fit:contain;transition:transform .55s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 16px 22px rgba(0,0,0,.6)) drop-shadow(0 0 22px var(--ta))}
+.hero .ccrate{max-height:68%;width:auto}
+.cwrap:hover .ccrate,.cover:hover .ccrate{transform:translateX(-50%) translateY(-5%) scale(1.08)}
+.cname{position:absolute;left:0;right:0;bottom:0;z-index:30;padding:34px 12px 9px;background:linear-gradient(to top,#080b10,rgba(8,11,16,.8),transparent);font:700 17px Rajdhani,system-ui;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero .cname{font-size:30px;padding:40px 18px 14px}
+.ctag{position:absolute;top:9px;left:9px;z-index:31;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:2px 7px;color:var(--tb)}
+.pt{position:absolute;bottom:-12px;border-radius:50%;background:var(--pc);box-shadow:0 0 10px var(--pc);opacity:0;animation:rise var(--d) linear var(--dl) infinite;animation-play-state:paused}
+.cwrap:hover .pt,.cover:hover .pt,.hero .pt{animation-play-state:running}
+.cwrap:hover .pt{animation-duration:calc(var(--d)*.55)}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:0}12%{opacity:.95}100%{transform:translateY(-115%) scale(.4);opacity:0}}
+.cmeta{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 0}
+.cmeta .coins{background:rgba(255,201,74,.1);border-radius:9px;padding:3px 9px}
+/* reel */
+.reel{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(13,17,23,.9);padding:14px 0}
+.track{display:flex;gap:8px;will-change:transform}
+.rc{flex:none;width:144px;height:132px;border-radius:12px;border:1px solid var(--line);border-bottom-width:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px}
+.rc img{height:80px;width:100%;object-fit:contain}
+.rc span{font-size:11px;font-weight:600;color:#b3bfcd;margin-top:4px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mark{position:absolute;top:0;bottom:0;left:50%;width:3px;translate:-50% 0;background:linear-gradient(180deg,transparent,var(--ta,#2de6c6),transparent);box-shadow:0 0 18px var(--ta,#2de6c6);pointer-events:none;z-index:3}
+.fadeL,.fadeR{position:absolute;top:0;bottom:0;width:60px;pointer-events:none;z-index:2}
+.fadeL{left:0;background:linear-gradient(90deg,#0d1117,transparent)}
+.fadeR{right:0;background:linear-gradient(270deg,#0d1117,transparent)}
+/* modal */
+.ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.74);backdrop-filter:blur(4px);display:grid;place-items:center;padding:14px}
+.md{width:100%;max-width:540px;max-height:92vh;overflow:auto;padding:20px;animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+.md.wide{max-width:760px}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.two{display:grid;gap:20px;grid-template-columns:1.3fr 1fr}
+.tiers{display:grid;gap:22px;margin-top:22px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.kv div{background:rgba(255,255,255,.04);border-radius:12px;padding:10px}
+.kv small{display:block}
+.toast{position:fixed;left:50%;bottom:26px;translate:-50% 30px;background:#1b2531;border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:12px;padding:10px 16px;z-index:120;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;translate:-50% 0}
+/* farm */
+.farm{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+.clk-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.clk{position:relative;width:210px;height:210px;border-radius:50%;border:none;cursor:pointer;background:radial-gradient(circle at 35% 30%,#ffe9a0,#ffc94a 45%,#c98a10 100%);box-shadow:0 0 0 8px rgba(255,201,74,.15),0 0 60px rgba(255,201,74,.35),inset 0 -10px 24px rgba(120,70,0,.5);transition:transform .08s;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.clk:active,.clk.held{transform:scale(.94)}
+.clk svg{width:120px;height:120px;filter:drop-shadow(0 4px 6px rgba(120,70,0,.5))}
+.fl{position:fixed;pointer-events:none;font:800 22px Rajdhani,system-ui;color:#ffe08a;text-shadow:0 2px 8px rgba(0,0,0,.7);z-index:90;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translateY(-70px);opacity:0}}
+.lv{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lvb{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;font-weight:700}
+.lvb small{display:block}
+.lvb.done{background:rgba(61,220,132,.12);border-color:rgba(61,220,132,.4);color:#7ff0aa}
+.lvb.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;color:#fff}
+.lvb.easy small{color:#3ddc84}.lvb.mid small{color:#ffd60a}.lvb.hard small{color:#ff6b6b}
+.quiz{position:relative;overflow:hidden;border:1px solid rgba(45,230,198,.4);box-shadow:0 0 60px -20px var(--br),inset 0 0 80px rgba(20,207,174,.06);background:radial-gradient(80% 60% at 50% 0%,rgba(20,207,174,.14),transparent 70%),#0d1219}
+.qimg{aspect-ratio:16/9;display:grid;place-items:center;border-radius:16px;background:radial-gradient(60% 70% at 50% 50%,rgba(255,255,255,.1),transparent 75%),#10161e;border:1px solid var(--line);margin:10px 0 14px}
+.qimg img{max-width:88%;max-height:92%;object-fit:contain;filter:drop-shadow(0 10px 16px rgba(0,0,0,.6))}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{padding:13px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);font-weight:700;color:#fff;cursor:pointer;text-align:center;transition:.15s;min-height:54px}
+.opt:hover{background:rgba(45,230,198,.14);border-color:var(--br)}
+.opt.ok{background:rgba(61,220,132,.3);border-color:#3ddc84}
+.opt.bad{background:rgba(255,91,91,.3);border-color:#ff5b5b}
+.opt:disabled{cursor:default}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:12px}
+.dots i{width:22px;height:5px;border-radius:3px;background:rgba(255,255,255,.14)}
+.dots i.d{background:var(--br)}.dots i.c{background:var(--gold)}
+.tag{padding:2px 8px;border-radius:7px;font-size:11px;font-weight:800;text-transform:uppercase}
+.tag.easy{background:rgba(61,220,132,.18);color:#3ddc84}.tag.mid{background:rgba(255,214,10,.18);color:#ffd60a}.tag.hard{background:rgba(236,74,51,.18);color:#ff6b6b}
+/* quests */
+.qc{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.qc .top2{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px;color:var(--mut)}
+.qc .tx{font-weight:700;margin-bottom:8px;color:#fff}
+.bar{height:7px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:8px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--br2),var(--br))}
+.qc .bt{display:flex;justify-content:space-between;align-items:center;gap:10px}
+/* upgrade */
+.up-top{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:22px;align-items:start}
+.wheelbox{position:relative;width:min(100%,380px);margin:6px auto 0;aspect-ratio:1}
+.wheelbox svg{width:100%;height:100%;display:block}
+.arrow{transform-box:view-box;transform-origin:200px 200px}
+.center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none}
+.pct{position:relative;font:800 46px Rajdhani,system-ui;line-height:1}
+.sub{position:relative;color:var(--mut);font-size:13px;margin-top:4px}
+.tools{display:flex;gap:8px;margin:0 0 6px}
+.tool{width:38px;height:38px;border-radius:10px;background:var(--p3);border:1px solid var(--line);font-size:17px;cursor:pointer;display:grid;place-items:center}
+.tool.on{border-color:var(--br);box-shadow:0 0 0 1px var(--br) inset}
+.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.chp{background:var(--p3);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-weight:700;font-size:14px;cursor:pointer}
+.chp:hover{border-color:var(--br)}
+.chp.m{color:var(--gold)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pn{background:var(--p2);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:150px;display:flex;flex-direction:column;gap:8px}
+.pn h4{font-size:15px}
+.mini{display:flex;flex-wrap:wrap;gap:4px}
+.mini span{background:rgba(255,255,255,.07);border-radius:7px;padding:2px 7px;font-size:12px}
+.rad{display:flex;gap:10px;align-items:flex-start;padding:8px 0;cursor:pointer}
+.rad i{width:20px;height:20px;border-radius:50%;border:2px solid var(--mut);flex:0 0 20px;margin-top:2px}
+.rad.on i{border-color:var(--br);background:radial-gradient(var(--br) 45%,transparent 50%)}
+.rad b{display:block;font-size:15px;color:#fff}.rad span{color:var(--mut);font-size:13px}
+.arrows{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ab{background:var(--p3);border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;display:grid;place-items:center}
+.ab.on{border-color:var(--br);box-shadow:0 0 0 1px var(--br) inset}
+.qrow{background:var(--p3);border-radius:14px;padding:12px;margin-bottom:10px}
+.qrow p{margin:0 0 8px;color:var(--mut);font-size:14px}
+.qrow .r{display:flex;gap:8px;align-items:center}
+.bwrap{position:relative;overflow:hidden;border-radius:14px;background:var(--p2);border:1px solid var(--line);padding:10px 0;margin:10px 0}
+.bwrap::before,.bwrap::after{content:"";position:absolute;top:0;bottom:0;width:36px;z-index:2;pointer-events:none}
+.bwrap::before{left:0;background:linear-gradient(to right,var(--p2),transparent)}
+.bwrap::after{right:0;background:linear-gradient(to left,var(--p2),transparent)}
+.bmark{position:absolute;left:50%;top:0;bottom:0;width:3px;background:var(--br);transform:translateX(-50%);z-index:3;box-shadow:0 0 12px var(--br)}
+.bstrip{display:flex;gap:8px;will-change:transform}
+.bc{flex:none;width:100px;border:1px solid var(--line);border-bottom-width:3px;border-radius:10px;padding:6px;background:var(--p3);text-align:center}
+.bc img{width:100%;height:56px;object-fit:contain}
+.bc span{display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res{text-align:center}
+.big{font:800 34px Rajdhani,system-ui;margin-bottom:8px}
+.big.win{color:var(--grn)}.big.lose{color:var(--red)}
+.selbar{position:sticky;top:58px;z-index:30;display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:10px 14px;margin-bottom:14px;background:rgba(13,17,23,.95);border:1px solid rgba(45,230,198,.35);border-radius:14px;backdrop-filter:blur(8px)}
+.stat{background:rgba(255,255,255,.04);border-radius:12px;padding:10px}
+.stat b{display:block;font:700 22px Rajdhani,system-ui;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 10px;border-top:1px solid rgba(255,255,255,.06);text-align:left}
+th{font-size:11px;text-transform:uppercase;color:var(--mut);border-top:none}
+@media(max-width:1100px){.g-cases{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){.side{display:none;position:fixed;inset:0 auto 0 0;height:100vh;width:250px;background:#0d1117}.side.open{display:flex}.burger{display:inline-flex}.two,.farm,.up-top{grid-template-columns:1fr}.view{padding:14px}.top{padding:10px 14px}.mono{font-size:6rem}.g-cases{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+@media(max-width:620px){.g-cases{grid-template-columns:repeat(2,minmax(0,1fr))}.panels{grid-template-columns:1fr}.opts{grid-template-columns:1fr}.hd h1{font-size:26px}}
+@media(prefers-reduced-motion:reduce){.cpat,.pt,.sk:after{animation:none}}
+
+.obtns{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0 10px}
+.obtn{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:12px 6px;border-radius:16px;border:1px solid rgba(45,230,198,.5);background:linear-gradient(180deg,rgba(45,230,198,.22),rgba(14,169,142,.1));color:#fff;cursor:pointer;transition:transform .15s,box-shadow .2s,background .2s;overflow:hidden}
+.obtn::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);transform:translateX(-120%);transition:transform .6s}
+.obtn:hover:not(:disabled)::before{transform:translateX(120%)}
+.obtn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 30px -10px var(--br);background:linear-gradient(180deg,rgba(45,230,198,.4),rgba(14,169,142,.2))}
+.obtn:first-child{background:linear-gradient(180deg,#2de6c6,#0ea98e);color:#04211c}
+.obtn b{font:700 22px Rajdhani,system-ui;line-height:1}.obtn i{font-style:normal;font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.06em}.obtn span{font-size:13px;margin-top:3px}
+.obtn:first-child .coins{color:#04211c}
+.obtn:disabled{opacity:.4;cursor:not-allowed}
+.tabs.sticky{position:sticky;top:57px;z-index:35;background:rgba(8,11,16,.92);backdrop-filter:blur(8px);padding:8px 0;flex-wrap:nowrap;overflow-x:auto;margin-bottom:16px;scrollbar-width:none}
+.tabs.sticky::-webkit-scrollbar{display:none}
+.tabs.sticky .tb{white-space:nowrap;padding:9px 16px;font-size:14px;flex:none}
+.tb.on{background:linear-gradient(180deg,rgba(45,230,198,.3),rgba(14,169,142,.14));box-shadow:0 0 18px -6px var(--br)}
+.up-lists{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.scrl{max-height:560px;overflow:auto;padding-right:4px}
+@media(max-width:900px){.up-lists{grid-template-columns:1fr}.obtn b{font-size:17px}.obtn{padding:10px 2px}.obtn span{font-size:11px}}
+.bal{background:rgba(255,201,74,.08);backdrop-filter:blur(8px)}
+.coin{filter:drop-shadow(0 0 4px rgba(255,201,74,.35))}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="cg" cx=".32" cy=".28" r=".85"><stop offset="0" stop-color="#fff6cf" stop-opacity=".95"/><stop offset=".55" stop-color="#ffc94a" stop-opacity=".55"/><stop offset="1" stop-color="#e08a00" stop-opacity=".28"/></radialGradient></defs><symbol id="coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" fill="url(#cg)" stroke="#ffd45c" stroke-opacity=".85" stroke-width="1.3"/><path d="M12 4.2l6.2 3.6v7.4L12 18.8l-6.2-3.6V7.8z" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.1" stroke-linejoin="round"/><path d="M9.4 9.6h5.2M12 9.6v5.4" stroke="#fff" stroke-opacity=".9" stroke-width="1.6" stroke-linecap="round"/><path d="M6 8c1.5-2.8 4-4 6.5-4" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" fill="none" stroke-linecap="round"/></symbol></svg>
+<div class="app">
+  <aside class="side" id="side">
+    <div class="logo"><i><svg viewBox="0 0 64 64" width="20" height="20"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7af5de"/><stop offset="1" stop-color="#0ea98e"/></linearGradient></defs><path d="M14 18h10l8 22 8-22h10L36 50h-8z" fill="url(#g)"/></svg></i>VAULTLINE</div>
+    <nav class="nav" id="nav"></nav>
+    <div class="note">Игра на виртуальные токены. Реальных денег, выводов и ставок нет. Прогресс хранится только в вашем браузере.</div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="btn burger" data-act="menu" aria-label="Меню">☰</button>
+      <div class="grow"></div>
+      <button class="bal" data-act="goto" data-to="profile" id="bal" title="Ваш баланс в токенах"></button>
+    </header>
+    <main class="view" id="view"></main>
+    <footer class="foot">Vaultline — неофициальная игра-симулятор, не связана с Valve Corporation. Counter-Strike и названия предметов принадлежат их владельцам. Каталог и изображения: CSGO-API (ByMykel). Цены — реальные рыночные в долларах из встроенной базы (по возможности Skinport), пересчитанные в токены ×2.</footer>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+'use strict';
+/* ================= утилиты ================= */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const COIN = '<svg class="coin"><use href="#coin"/></svg>';
+const fmt = (n) => Math.round(n).toLocaleString('ru-RU');
+const cn = (n) => `<span class="coins">${COIN}${fmt(n)}</span>`;
+const pct = (p) => { const v = p * 100; return (v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v >= 0.01 ? v.toFixed(3) : v.toFixed(4)) + '%'; };
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+const slugify = (s) => String(s).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const pl = (n, a, b, c) => { const m = n % 100, d = n % 10; return (m > 10 && m < 15) ? c : d === 1 ? a : (d > 1 && d < 5) ? b : c; };
+function rint(n) { const lim = Math.floor(4294967296 / n) * n; const a = new Uint32Array(1); do { crypto.getRandomValues(a); } while (a[0] >= lim); return a[0] % n; }
+const rfloat = () => rint(1 << 30) / (1 << 30);
+function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function seeded(seed) { let a = hash(seed); return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const hms = (ms) => { const t = Math.max(0, Math.floor(ms / 1000)); return String(Math.floor(t / 3600)).padStart(2, '0') + ':' + String(Math.floor(t % 3600 / 60)).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ================= экономика ================= */
+const RATE = 85;                 // курс: рублей за доллар (1 токен = 1 рубль)
+const BOOST = 2.5;               // общий множитель цен ×2,5
+const COIN_PER_USD = Math.round(RATE * 1.35 * BOOST); // ≈230 токенов за 1 $
+const WEARS = [
+  { n: 'Прямо с завода', s: 'FN', lo: 0, hi: 0.07 },
+  { n: 'Немного поношенное', s: 'MW', lo: 0.07, hi: 0.15 },
+  { n: 'Поношенное', s: 'FT', lo: 0.15, hi: 1 }
+];
+const RANKF = [1, 0.85, 0.65];   // множитель цены по «рангу» износа (лучший доступный = 1)
+const ST_MULT = 1.4;
+const START_BAL = 5000;
+const CLICK_REWARD = 100, HOLD_REWARD = 10, HOLD_EVERY = 75;
+const EDGE = 0.95;
+const BONUS_CHANCE = 0.4;
+const TIERS = { 1: ['Ширпотреб', '#b0c3d9'], 2: ['Промышленное', '#5e98d9'], 3: ['Армейское', '#4b69ff'], 4: ['Запрещённое', '#8847ff'], 5: ['Засекреченное', '#d32ce6'], 6: ['Тайное', '#eb4b4b'], 7: ['Редкий особый', '#e4ae39'], 8: ['Контрабанда', '#e4802b'] };
+
+/* ================= состояние ================= */
+const KEY = 'vaultline_coins_v1';
+const DEF = () => ({
+  balance: START_BAL, inv: [], ops: [], lastDaily: 0, streak: 0,
+  stats: { cases: 0, clicks: 0, quizOk: 0, sold: 0, soldSum: 0, upg: 0, wins: 0, farmSum: 0, best: null, contracts: 0 },
+  set: { mult: [2, 5, 10], pct: [25, 50, 75], sound: true, mode: 'old', arrow: 'tri', fast: false },
+  quiz: { done: Array(15).fill(false) }, qd: null, ls: 0, qs: 0
+});
+function loadState() {
+  try {
+    const o = JSON.parse(localStorage.getItem(KEY));
+    if (o && typeof o.balance === 'number' && Array.isArray(o.inv)) {
+      const d = DEF(); const s = Object.assign(d, o);
+      s.stats = Object.assign(d.stats, o.stats || {}); s.set = Object.assign(d.set, o.set || {}); s.quiz = Object.assign(d.quiz, o.quiz || {});
+      return s;
+    }
+  } catch (e) { /* пусто */ }
+  return DEF();
+}
+let st = loadState();
+let saveT = null;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* хранилище недоступно */ } }
+function schedSave() { if (!saveT) saveT = setTimeout(() => { saveT = null; save(); }, 500); }
+function addOp(d, delta) { st.balance += delta; st.ops.unshift({ t: Date.now(), d, delta, bal: st.balance }); if (st.ops.length > 120) st.ops.length = 120; save(); renderBal(); }
+function addCoins(n) { st.balance += n; renderBal(); }
+function renderBal() { const b = $('#bal'); if (b) b.innerHTML = COIN + fmt(st.balance); }
+
+/* ================= звук ================= */
+let AC = null, lastBeep = 0, tkN = 0;
+function beep(freq, dur = 0.08, type = 'sine', vol = 0.06, delay = 0) {
+  if (!st.set.sound) return;
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + delay; o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur); } catch (e) { /* нет звука */ }
+}
+const PENTA = [523.25, 587.33, 659.25, 783.99, 880];
+function bell(f, delay = 0, vol = 0.05) { beep(f, 0.7, 'sine', vol, delay); beep(f * 2, 0.35, 'sine', vol * 0.3, delay); }
+const sClick = () => beep(660, 0.05, 'sine', 0.03);
+const sTick = () => { const n = performance.now(); if (n - lastBeep < 45) return; lastBeep = n; beep(PENTA[tkN++ % 5] * 0.75, 0.06, 'sine', 0.028); };
+const sWin = () => { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => bell(f, i * 0.11, 0.05)); bell(1318.5, 0.5, 0.04); };
+const sSmall = () => { bell(659.25, 0, 0.045); bell(783.99, 0.12, 0.04); };
+const sLose = () => { beep(330, 0.35, 'sine', 0.025); beep(262, 0.5, 'sine', 0.025, 0.2); };
+const sCoin = () => beep(1200 + rint(300), 0.05, 'triangle', 0.02);
+
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400); }
+let modalLock = false;
+function modal(html, wide) { closeModal(true); const d = document.createElement('div'); d.className = 'ov'; d.id = 'ov'; d.innerHTML = `<div class="panel md ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" id="md">${html}</div>`; d.addEventListener('mousedown', (e) => { if (e.target === d) closeModal(); }); document.body.appendChild(d); }
+function closeModal(force) { if (modalLock && !force) return; const o = $('#ov'); if (o) o.remove(); stopHold(); if (quizTimer) { clearTimeout(quizTimer); quizTimer = null; } }
+let quizTimer = null;
+function stopHold() { clearInterval(holdIv); clearTimeout(holdTo); holdIv = holdTo = null; const b = $('#clk'); if (b) b.classList.remove('held'); }
+let holdIv = null, holdTo = null;
+
+/* ================= встроенные цены (USD, из вашей прошлой игры) ================= */
+const BUILTIN_ROWS = [["P250 | Sand Dune","w",1,0.05],["Glock-18 | Sand Dune","w",1,0.06],["MP9 | Storm","w",1,0.08],["Nova | Predator","w",1,0.1],["FAMAS | Colony","w",1,0.12],["Negev | Army Sheen","w",1,0.1],["Galil AR | Sage Spray","w",1,0.1],["Tec-9 | Groundwater","w",1,0.2],["UMP-45 | Carbon Fiber","w",2,0.3],["MAC-10 | Silver","w",2,0.4],["SG 553 | Damascus Steel","w",2,0.5],["XM1014 | Blue Steel","w",2,0.5],["MP7 | Skulls","w",3,0.8],["P90 | Elite Build","w",3,1],["SG 553 | Pulse","w",3,1.2],["MAC-10 | Stalker","w",3,1.5],["SSG 08 | Abyss","w",3,1],["USP-S | Cortex","w",3,2.5],["AWP | Atheris","w",3,2.5],["Glock-18 | Vogue","w",3,3.5],["AK-47 | Elite Build","w",3,4],["Five-SeveN | Case Hardened","w",3,20],["AK-47 | Slate","w",4,13.23],["M4A1-S | Liquidation","w",4,8.81],["AK-47 | Phantom Disruptor","w",4,12],["AK-47 | Blue Laminate","w",4,18],["AK-47 | Safety Net","w",4,8],["AK-47 | Uncharted","w",4,5],["AK-47 | Orbit Mk01","w",4,9],["M4A4 | Evil Daimyo","w",4,7],["M4A4 | Zirka","w",4,4],["M4A4 | Desolate Space","w",4,7],["M4A4 | Griffin","w",4,20],["M4A4 | Radiation Hazard","w",4,15],["M4A1-S | Nightmare","w",4,10],["M4A1-S | Briefing","w",4,14],["M4A1-S | Flashback","w",4,6],["AWP | Phobos","w",4,4],["AWP | Corticera","w",4,15],["AWP | Elite Build","w",4,6],["AWP | Mortis","w",4,7],["AWP | Capillary","w",4,10],["AWP | Man-o'-war","w",4,15],["AWP | Redline","w",4,25],["USP-S | Orion","w",4,12],["USP-S | Torque","w",4,3.5],["USP-S | Flashback","w",4,3],["Glock-18 | Bunsen Burner","w",4,3],["Glock-18 | Water Elemental","w",4,5],["Glock-18 | Wasteland Rebel","w",4,22],["Glock-18 | Moonrise","w",4,6],["Glock-18 | Off World","w",4,5],["P250 | Muertos","w",4,4],["P250 | Mehndi","w",4,14],["P250 | Asiimov","w",4,12],["Desert Eagle | Code Red","w",4,14],["Desert Eagle | Directive","w",4,5],["Desert Eagle | Conspiracy","w",4,6],["Desert Eagle | Blaze","w",4,450],["Five-SeveN | Monkey Business","w",4,6],["Five-SeveN | Angry Mob","w",4,5],["Dual Berettas | Cobra Strike","w",4,6],["Tec-9 | Fuel Injector","w",4,7],["MP9 | Rose Iron","w",4,8],["MAC-10 | Heat","w",4,4],["UMP-45 | Primal Saber","w",4,6],["P90 | Trigon","w",4,6],["P90 | Shallow Grave","w",4,5],["Galil AR | Cerberus","w",4,5],["FAMAS | Djinn","w",4,4],["FAMAS | Mecha Industries","w",4,6],["AUG | Torque","w",4,5],["SG 553 | Integrale","w",4,5],["MAG-7 | Bulldozer","w",4,4],["XM1014 | Tranquility","w",4,8],["Negev | Loudmouth","w",4,6],["M249 | Nebula Crusader","w",4,4],["AK-47 | Crane Flight","w",5,44.09],["AK-47 | Nouveau Rouge","w",5,51.71],["AK-47 | Case Hardened","w",5,415],["AK-47 | Redline","w",5,300],["AK-47 | Neon Revolution","w",5,90],["AK-47 | Fuel Injector","w",5,120],["AK-47 | Head Shot","w",5,160],["AK-47 | Wasteland Rebel","w",5,85],["AK-47 | Point Disarray","w",5,30],["AK-47 | Jet Set","w",5,60],["AK-47 | Legion of Anubis","w",5,45],["AK-47 | Rat Rod","w",5,30],["AK-47 | X-Ray","w",5,35],["M4A4 | Asiimov","w",5,300],["M4A4 | The Emperor","w",5,110],["M4A4 | Neo-Noir","w",5,25],["M4A4 | Buzz Kill","w",5,30],["M4A4 | Cyber Security","w",5,8],["M4A4 | Dragon King","w",5,15],["M4A4 | Desert-Strike","w",5,15],["M4A4 | Falak","w",5,127],["M4A1-S | Black Lotus","w",5,10.37],["M4A1-S | Cyrex","w",5,8],["M4A1-S | Decimator","w",5,20],["M4A1-S | Chantico's Fire","w",5,30],["M4A1-S | Golden Coil","w",5,60],["M4A1-S | Hot Rod","w",5,150],["M4A1-S | Mecha Industries","w",5,25],["M4A1-S | Control Panel","w",5,6],["AWP | Neo-Noir","w",5,35],["AWP | Wildfire","w",5,35],["AWP | Lightning Strike","w",5,100],["AWP | Fade","w",5,400],["AWP | Graphite","w",5,300],["AWP | Electric Hive","w",5,18],["AWP | Ice Coaled","w",5,25.41],["Glock-18 | Fade","w",5,450],["Glock-18 | Neo-Noir","w",5,15],["Glock-18 | Gamma Doppler","w",5,60],["USP-S | Neo-Noir","w",5,25],["USP-S | The Traitor","w",5,12],["Desert Eagle | Kumicho Dragon","w",5,22],["Desert Eagle | Oxide Blaze","w",5,15],["R8 Revolver | Fade","w",5,70],["Five-SeveN | Hyper Beast","w",5,18],["Five-SeveN | Fairy Tale","w",5,20],["Tec-9 | Re-Entry","w",5,4],["CZ75-Auto | Victoria","w",5,8],["CZ75-Auto | Xiangliu","w",5,6],["CZ75-Auto | Tigris","w",5,6],["P250 | See Ya Later","w",5,12],["MP9 | Hot Rod","w",5,40],["MP7 | Bloodsport","w",5,15],["P90 | Asiimov","w",5,25],["P90 | Neoqueen","w",5,5],["MAC-10 | Neon Rider","w",5,20],["Nova | Hyper Beast","w",5,14],["Sawed-Off | The Kraken","w",5,12],["UMP-45 | Momentum","w",5,12],["MP5-SD | Phosphor","w",5,8],["SCAR-20 | Cyrex","w",5,8],["G3SG1 | Chronos","w",5,7],["SSG 08 | Dragonfire","w",5,30],["Galil AR | Chatterbox","w",5,20],["PP-Bizon | Judgement of Anubis","w",5,6],["AK-47 | Inheritance","w",6,101],["AK-47 | Bloodsport","w",6,147],["AK-47 | Asiimov","w",6,295],["AK-47 | Vulcan","w",6,532],["AK-47 | Neon Rider","w",6,193],["AK-47 | The Oligarch","w",6,250],["AK-47 | Aphrodite","w",6,258],["AK-47 | B the Monster","w",6,333],["AK-47 | Consequence of the Jinn","w",6,539],["AK-47 | Aquamarine Revenge","w",6,179],["AK-47 | Hydroponic","w",6,220],["AK-47 | The Empress","w",6,120],["AK-47 | Fire Serpent","w",6,2500],["AK-47 | Wild Lotus","w",6,12000],["M4A4 | Howl","w",8,6626],["M4A4 | Poseidon","w",6,600],["M4A4 | Temukau","w",6,89],["M4A4 | Full Throttle","w",6,170],["M4A4 | Spider Lily","w",6,70],["M4A1-S | Printstream","w",6,398],["M4A1-S | Vaporwave","w",6,142],["M4A1-S | Fade","w",6,167],["M4A1-S | Hyper Beast","w",6,100],["M4A1-S | Knight","w",6,600],["M4A1-S | Atomic Alloy","w",6,25],["M4A1-S | Icarus Fell","w",6,150],["M4A1-S | Master Piece","w",6,150],["M4A1-S | Welcome to the Jungle","w",6,800],["AWP | Dragon Lore","w",6,10899],["AWP | Medusa","w",6,4000],["AWP | Gungnir","w",6,6000],["AWP | Printstream","w",6,153],["AWP | Queen's Gambit","w",6,197],["AWP | Asiimov","w",6,250],["AWP | Sovereign Flame","w",6,415],["AWP | Containment Breach","w",6,70],["AWP | Hyper Beast","w",6,90],["AWP | Oni Taiji","w",6,150],["AWP | Desert Hydra","w",6,1200],["AWP | The Prince","w",6,450],["AWP | Silk Tiger","w",6,25],["AWP | Chromatic Aberration","w",6,40],["USP-S | Printstream","w",6,91],["USP-S | Kill Confirmed","w",6,140],["USP-S | Caiman","w",6,25],["Desert Eagle | Printstream","w",6,67.09],["Desert Eagle | Ocean Drive","w",6,80],["AUG | Akihabara Accept","w",6,80],["P90 | Death by Kitty","w",6,70],["Karambit | Vanilla","k",7,600],["Karambit | Doppler","k",7,800],["Karambit | Marble Fade","k",7,1100],["Karambit | Fade","k",7,1400],["Karambit | Tiger Tooth","k",7,1100],["Karambit | Slaughter","k",7,600],["Karambit | Crimson Web","k",7,700],["Karambit | Case Hardened","k",7,400],["Karambit | Damascus Steel","k",7,280],["Karambit | Ultraviolet","k",7,250],["Karambit | Blue Steel","k",7,250],["Karambit | Stained","k",7,220],["Karambit | Night","k",7,270],["Karambit | Rust Coat","k",7,130],["Karambit | Safari Mesh","k",7,180],["Karambit | Forest DDPAT","k",7,200],["Karambit | Urban Masked","k",7,180],["Karambit | Boreal Forest","k",7,190],["Karambit | Scorched","k",7,180],["Karambit | Gamma Doppler","k",7,900],["Karambit | Lore","k",7,1200],["Karambit | Autotronic","k",7,600],["Karambit | Black Laminate","k",7,450],["M9 Bayonet | Vanilla","k",7,510],["M9 Bayonet | Doppler","k",7,680],["M9 Bayonet | Marble Fade","k",7,935],["M9 Bayonet | Fade","k",7,1190],["M9 Bayonet | Tiger Tooth","k",7,935],["M9 Bayonet | Slaughter","k",7,510],["M9 Bayonet | Crimson Web","k",7,595],["M9 Bayonet | Case Hardened","k",7,340],["M9 Bayonet | Damascus Steel","k",7,238],["M9 Bayonet | Ultraviolet","k",7,212.5],["M9 Bayonet | Blue Steel","k",7,212.5],["M9 Bayonet | Stained","k",7,187],["M9 Bayonet | Night","k",7,229.5],["M9 Bayonet | Rust Coat","k",7,110.5],["M9 Bayonet | Safari Mesh","k",7,153],["M9 Bayonet | Forest DDPAT","k",7,170],["M9 Bayonet | Urban Masked","k",7,153],["M9 Bayonet | Boreal Forest","k",7,161.5],["M9 Bayonet | Scorched","k",7,153],["M9 Bayonet | Gamma Doppler","k",7,765],["M9 Bayonet | Lore","k",7,1020],["M9 Bayonet | Autotronic","k",7,510],["M9 Bayonet | Black Laminate","k",7,382.5],["Butterfly Knife | Vanilla","k",7,660],["Butterfly Knife | Doppler","k",7,880.0],["Butterfly Knife | Marble Fade","k",7,1210],["Butterfly Knife | Fade","k",7,1540.0],["Butterfly Knife | Tiger Tooth","k",7,1210],["Butterfly Knife | Slaughter","k",7,660],["Butterfly Knife | Crimson Web","k",7,770.0],["Butterfly Knife | Case Hardened","k",7,440.0],["Butterfly Knife | Damascus Steel","k",7,308],["Butterfly Knife | Ultraviolet","k",7,275],["Butterfly Knife | Blue Steel","k",7,275],["Butterfly Knife | Stained","k",7,242.0],["Butterfly Knife | Night","k",7,297],["Butterfly Knife | Rust Coat","k",7,143],["Butterfly Knife | Safari Mesh","k",7,198.0],["Butterfly Knife | Forest DDPAT","k",7,220.0],["Butterfly Knife | Urban Masked","k",7,198.0],["Butterfly Knife | Boreal Forest","k",7,209.0],["Butterfly Knife | Scorched","k",7,198.0],["Butterfly Knife | Gamma Doppler","k",7,990.0],["Butterfly Knife | Lore","k",7,1778],["Butterfly Knife | Autotronic","k",7,660],["Butterfly Knife | Black Laminate","k",7,495.0],["Talon Knife | Vanilla","k",7,600],["Talon Knife | Doppler","k",7,800],["Talon Knife | Marble Fade","k",7,1100],["Talon Knife | Fade","k",7,1400],["Talon Knife | Tiger Tooth","k",7,1100],["Talon Knife | Slaughter","k",7,600],["Talon Knife | Crimson Web","k",7,700],["Talon Knife | Case Hardened","k",7,400],["Talon Knife | Damascus Steel","k",7,280],["Talon Knife | Ultraviolet","k",7,250],["Talon Knife | Blue Steel","k",7,250],["Talon Knife | Stained","k",7,220],["Talon Knife | Night","k",7,270],["Talon Knife | Rust Coat","k",7,130],["Talon Knife | Safari Mesh","k",7,180],["Talon Knife | Forest DDPAT","k",7,200],["Talon Knife | Urban Masked","k",7,180],["Talon Knife | Boreal Forest","k",7,190],["Talon Knife | Scorched","k",7,180],["Skeleton Knife | Vanilla","k",7,480],["Skeleton Knife | Doppler","k",7,640],["Skeleton Knife | Marble Fade","k",7,880],["Skeleton Knife | Fade","k",7,1120],["Skeleton Knife | Tiger Tooth","k",7,880],["Skeleton Knife | Slaughter","k",7,480],["Skeleton Knife | Crimson Web","k",7,560],["Skeleton Knife | Case Hardened","k",7,320],["Skeleton Knife | Damascus Steel","k",7,224],["Skeleton Knife | Ultraviolet","k",7,200],["Skeleton Knife | Blue Steel","k",7,200],["Skeleton Knife | Stained","k",7,176],["Skeleton Knife | Night","k",7,216],["Skeleton Knife | Rust Coat","k",7,104],["Skeleton Knife | Safari Mesh","k",7,144],["Skeleton Knife | Forest DDPAT","k",7,160],["Skeleton Knife | Urban Masked","k",7,144],["Skeleton Knife | Boreal Forest","k",7,152],["Skeleton Knife | Scorched","k",7,144],["Bayonet | Vanilla","k",7,360],["Bayonet | Doppler","k",7,480],["Bayonet | Marble Fade","k",7,660],["Bayonet | Fade","k",7,840],["Bayonet | Tiger Tooth","k",7,660],["Bayonet | Slaughter","k",7,360],["Bayonet | Crimson Web","k",7,420],["Bayonet | Case Hardened","k",7,240],["Bayonet | Damascus Steel","k",7,168],["Bayonet | Ultraviolet","k",7,150],["Bayonet | Blue Steel","k",7,150],["Bayonet | Stained","k",7,132],["Bayonet | Night","k",7,162],["Bayonet | Rust Coat","k",7,78],["Bayonet | Safari Mesh","k",7,108],["Bayonet | Forest DDPAT","k",7,120],["Bayonet | Urban Masked","k",7,108],["Bayonet | Boreal Forest","k",7,114],["Bayonet | Scorched","k",7,108],["Bayonet | Gamma Doppler","k",7,540],["Bayonet | Lore","k",7,720],["Bayonet | Autotronic","k",7,360],["Bayonet | Black Laminate","k",7,270],["Flip Knife | Vanilla","k",7,300],["Flip Knife | Doppler","k",7,400],["Flip Knife | Marble Fade","k",7,550],["Flip Knife | Fade","k",7,700],["Flip Knife | Tiger Tooth","k",7,550],["Flip Knife | Slaughter","k",7,300],["Flip Knife | Crimson Web","k",7,350],["Flip Knife | Case Hardened","k",7,200],["Flip Knife | Damascus Steel","k",7,140],["Flip Knife | Ultraviolet","k",7,125],["Flip Knife | Blue Steel","k",7,125],["Flip Knife | Stained","k",7,110],["Flip Knife | Night","k",7,135],["Flip Knife | Rust Coat","k",7,65],["Flip Knife | Safari Mesh","k",7,90],["Flip Knife | Forest DDPAT","k",7,100],["Flip Knife | Urban Masked","k",7,90],["Flip Knife | Boreal Forest","k",7,95],["Flip Knife | Scorched","k",7,90],["Flip Knife | Gamma Doppler","k",7,450],["Flip Knife | Lore","k",7,600],["Flip Knife | Autotronic","k",7,300],["Flip Knife | Black Laminate","k",7,225],["Huntsman Knife | Vanilla","k",7,330],["Huntsman Knife | Doppler","k",7,440.0],["Huntsman Knife | Marble Fade","k",7,605],["Huntsman Knife | Fade","k",7,770.0],["Huntsman Knife | Tiger Tooth","k",7,605],["Huntsman Knife | Slaughter","k",7,330],["Huntsman Knife | Crimson Web","k",7,385.0],["Huntsman Knife | Case Hardened","k",7,220.0],["Huntsman Knife | Damascus Steel","k",7,154],["Huntsman Knife | Ultraviolet","k",7,137.5],["Huntsman Knife | Blue Steel","k",7,137.5],["Huntsman Knife | Stained","k",7,121.0],["Huntsman Knife | Night","k",7,148.5],["Huntsman Knife | Rust Coat","k",7,71.5],["Huntsman Knife | Safari Mesh","k",7,99.0],["Huntsman Knife | Forest DDPAT","k",7,110.0],["Huntsman Knife | Urban Masked","k",7,99.0],["Huntsman Knife | Boreal Forest","k",7,104.5],["Huntsman Knife | Scorched","k",7,99.0],["Huntsman Knife | Gamma Doppler","k",7,495.0],["Huntsman Knife | Lore","k",7,660],["Huntsman Knife | Autotronic","k",7,330],["Huntsman Knife | Black Laminate","k",7,247.5],["Navaja Knife | Vanilla","k",7,180],["Navaja Knife | Doppler","k",7,240],["Navaja Knife | Marble Fade","k",7,330],["Navaja Knife | Fade","k",7,420],["Navaja Knife | Tiger Tooth","k",7,330],["Navaja Knife | Slaughter","k",7,180],["Navaja Knife | Crimson Web","k",7,210],["Navaja Knife | Case Hardened","k",7,120],["Navaja Knife | Damascus Steel","k",7,84],["Navaja Knife | Ultraviolet","k",7,75],["Navaja Knife | Blue Steel","k",7,75],["Navaja Knife | Stained","k",7,66],["Navaja Knife | Night","k",7,81],["Navaja Knife | Rust Coat","k",7,39],["Navaja Knife | Safari Mesh","k",7,54],["Navaja Knife | Forest DDPAT","k",7,60],["Navaja Knife | Urban Masked","k",7,54],["Navaja Knife | Boreal Forest","k",7,57],["Navaja Knife | Scorched","k",7,54],["Stiletto Knife | Vanilla","k",7,240],["Stiletto Knife | Doppler","k",7,320],["Stiletto Knife | Marble Fade","k",7,440],["Stiletto Knife | Fade","k",7,560],["Stiletto Knife | Tiger Tooth","k",7,440],["Stiletto Knife | Slaughter","k",7,240],["Stiletto Knife | Crimson Web","k",7,280],["Stiletto Knife | Case Hardened","k",7,160],["Stiletto Knife | Damascus Steel","k",7,112],["Stiletto Knife | Ultraviolet","k",7,100],["Stiletto Knife | Blue Steel","k",7,100],["Stiletto Knife | Stained","k",7,88],["Stiletto Knife | Night","k",7,108],["Stiletto Knife | Rust Coat","k",7,52],["Stiletto Knife | Safari Mesh","k",7,72],["Stiletto Knife | Forest DDPAT","k",7,80],["Stiletto Knife | Urban Masked","k",7,72],["Stiletto Knife | Boreal Forest","k",7,76],["Stiletto Knife | Scorched","k",7,72],["Ursus Knife | Vanilla","k",7,210],["Ursus Knife | Doppler","k",7,280],["Ursus Knife | Marble Fade","k",7,385],["Ursus Knife | Fade","k",7,490.0],["Ursus Knife | Tiger Tooth","k",7,385],["Ursus Knife | Slaughter","k",7,210],["Ursus Knife | Crimson Web","k",7,245.0],["Ursus Knife | Case Hardened","k",7,140],["Ursus Knife | Damascus Steel","k",7,98],["Ursus Knife | Ultraviolet","k",7,87.5],["Ursus Knife | Blue Steel","k",7,87.5],["Ursus Knife | Stained","k",7,77],["Ursus Knife | Night","k",7,94.5],["Ursus Knife | Rust Coat","k",7,45.5],["Ursus Knife | Safari Mesh","k",7,63.0],["Ursus Knife | Forest DDPAT","k",7,70],["Ursus Knife | Urban Masked","k",7,63.0],["Ursus Knife | Boreal Forest","k",7,66.5],["Ursus Knife | Scorched","k",7,63.0],["Gut Knife | Vanilla","k",7,150],["Gut Knife | Doppler","k",7,200],["Gut Knife | Marble Fade","k",7,275],["Gut Knife | Fade","k",7,350],["Gut Knife | Tiger Tooth","k",7,275],["Gut Knife | Slaughter","k",7,150],["Gut Knife | Crimson Web","k",7,175],["Gut Knife | Case Hardened","k",7,100],["Gut Knife | Damascus Steel","k",7,70],["Gut Knife | Ultraviolet","k",7,62.5],["Gut Knife | Blue Steel","k",7,62.5],["Gut Knife | Stained","k",7,55],["Gut Knife | Night","k",7,67.5],["Gut Knife | Rust Coat","k",7,32.5],["Gut Knife | Safari Mesh","k",7,45],["Gut Knife | Forest DDPAT","k",7,50],["Gut Knife | Urban Masked","k",7,45],["Gut Knife | Boreal Forest","k",7,47.5],["Gut Knife | Scorched","k",7,45],["Gut Knife | Gamma Doppler","k",7,225],["Gut Knife | Lore","k",7,300],["Gut Knife | Autotronic","k",7,150],["Gut Knife | Black Laminate","k",7,112.5],["Falchion Knife | Vanilla","k",7,180],["Falchion Knife | Doppler","k",7,240],["Falchion Knife | Marble Fade","k",7,330],["Falchion Knife | Fade","k",7,420],["Falchion Knife | Tiger Tooth","k",7,330],["Falchion Knife | Slaughter","k",7,180],["Falchion Knife | Crimson Web","k",7,210],["Falchion Knife | Case Hardened","k",7,120],["Falchion Knife | Damascus Steel","k",7,84],["Falchion Knife | Ultraviolet","k",7,75],["Falchion Knife | Blue Steel","k",7,75],["Falchion Knife | Stained","k",7,66],["Falchion Knife | Night","k",7,81],["Falchion Knife | Rust Coat","k",7,39],["Falchion Knife | Safari Mesh","k",7,54],["Falchion Knife | Forest DDPAT","k",7,60],["Falchion Knife | Urban Masked","k",7,54],["Falchion Knife | Boreal Forest","k",7,57],["Falchion Knife | Scorched","k",7,54],["Bowie Knife | Vanilla","k",7,300],["Bowie Knife | Doppler","k",7,400],["Bowie Knife | Marble Fade","k",7,550],["Bowie Knife | Fade","k",7,700],["Bowie Knife | Tiger Tooth","k",7,550],["Bowie Knife | Slaughter","k",7,300],["Bowie Knife | Crimson Web","k",7,350],["Bowie Knife | Case Hardened","k",7,200],["Bowie Knife | Damascus Steel","k",7,140],["Bowie Knife | Ultraviolet","k",7,125],["Bowie Knife | Blue Steel","k",7,125],["Bowie Knife | Stained","k",7,110],["Bowie Knife | Night","k",7,135],["Bowie Knife | Rust Coat","k",7,65],["Bowie Knife | Safari Mesh","k",7,90],["Bowie Knife | Forest DDPAT","k",7,100],["Bowie Knife | Urban Masked","k",7,90],["Bowie Knife | Boreal Forest","k",7,95],["Bowie Knife | Scorched","k",7,90],["Shadow Daggers | Vanilla","k",7,180],["Shadow Daggers | Doppler","k",7,240],["Shadow Daggers | Marble Fade","k",7,330],["Shadow Daggers | Fade","k",7,420],["Shadow Daggers | Tiger Tooth","k",7,330],["Shadow Daggers | Slaughter","k",7,180],["Shadow Daggers | Crimson Web","k",7,210],["Shadow Daggers | Case Hardened","k",7,120],["Shadow Daggers | Damascus Steel","k",7,84],["Shadow Daggers | Ultraviolet","k",7,75],["Shadow Daggers | Blue Steel","k",7,75],["Shadow Daggers | Stained","k",7,66],["Shadow Daggers | Night","k",7,81],["Shadow Daggers | Rust Coat","k",7,39],["Shadow Daggers | Safari Mesh","k",7,54],["Shadow Daggers | Forest DDPAT","k",7,60],["Shadow Daggers | Urban Masked","k",7,54],["Shadow Daggers | Boreal Forest","k",7,57],["Shadow Daggers | Scorched","k",7,54],["Paracord Knife | Vanilla","k",7,150],["Paracord Knife | Doppler","k",7,200],["Paracord Knife | Marble Fade","k",7,275],["Paracord Knife | Fade","k",7,350],["Paracord Knife | Tiger Tooth","k",7,275],["Paracord Knife | Slaughter","k",7,150],["Paracord Knife | Crimson Web","k",7,175],["Paracord Knife | Case Hardened","k",7,100],["Paracord Knife | Damascus Steel","k",7,70],["Paracord Knife | Ultraviolet","k",7,62.5],["Paracord Knife | Blue Steel","k",7,62.5],["Paracord Knife | Stained","k",7,55],["Paracord Knife | Night","k",7,67.5],["Paracord Knife | Rust Coat","k",7,32.5],["Paracord Knife | Safari Mesh","k",7,45],["Paracord Knife | Forest DDPAT","k",7,50],["Paracord Knife | Urban Masked","k",7,45],["Paracord Knife | Boreal Forest","k",7,47.5],["Paracord Knife | Scorched","k",7,45],["Survival Knife | Vanilla","k",7,150],["Survival Knife | Doppler","k",7,200],["Survival Knife | Marble Fade","k",7,275],["Survival Knife | Fade","k",7,350],["Survival Knife | Tiger Tooth","k",7,275],["Survival Knife | Slaughter","k",7,150],["Survival Knife | Crimson Web","k",7,175],["Survival Knife | Case Hardened","k",7,100],["Survival Knife | Damascus Steel","k",7,70],["Survival Knife | Ultraviolet","k",7,62.5],["Survival Knife | Blue Steel","k",7,62.5],["Survival Knife | Stained","k",7,55],["Survival Knife | Night","k",7,67.5],["Survival Knife | Rust Coat","k",7,32.5],["Survival Knife | Safari Mesh","k",7,45],["Survival Knife | Forest DDPAT","k",7,50],["Survival Knife | Urban Masked","k",7,45],["Survival Knife | Boreal Forest","k",7,47.5],["Survival Knife | Scorched","k",7,45],["Nomad Knife | Vanilla","k",7,150],["Nomad Knife | Doppler","k",7,200],["Nomad Knife | Marble Fade","k",7,275],["Nomad Knife | Fade","k",7,350],["Nomad Knife | Tiger Tooth","k",7,275],["Nomad Knife | Slaughter","k",7,150],["Nomad Knife | Crimson Web","k",7,175],["Nomad Knife | Case Hardened","k",7,100],["Nomad Knife | Damascus Steel","k",7,70],["Nomad Knife | Ultraviolet","k",7,62.5],["Nomad Knife | Blue Steel","k",7,62.5],["Nomad Knife | Stained","k",7,55],["Nomad Knife | Night","k",7,67.5],["Nomad Knife | Rust Coat","k",7,32.5],["Nomad Knife | Safari Mesh","k",7,45],["Nomad Knife | Forest DDPAT","k",7,50],["Nomad Knife | Urban Masked","k",7,45],["Nomad Knife | Boreal Forest","k",7,47.5],["Nomad Knife | Scorched","k",7,45],["Classic Knife | Vanilla","k",7,300],["Classic Knife | Safari Mesh","k",7,90],["Classic Knife | Forest DDPAT","k",7,100],["Classic Knife | Urban Masked","k",7,90],["Classic Knife | Boreal Forest","k",7,95],["Classic Knife | Scorched","k",7,90],["Classic Knife | Stained","k",7,110],["Classic Knife | Night","k",7,135],["Classic Knife | Blue Steel","k",7,125],["Classic Knife | Case Hardened","k",7,200],["Classic Knife | Slaughter","k",7,300],["Classic Knife | Fade","k",7,700],["Classic Knife | Crimson Web","k",7,350],["Kukri Knife | Vanilla","k",7,180],["Kukri Knife | Safari Mesh","k",7,54],["Kukri Knife | Forest DDPAT","k",7,60],["Kukri Knife | Urban Masked","k",7,54],["Kukri Knife | Boreal Forest","k",7,57],["Kukri Knife | Scorched","k",7,54],["Kukri Knife | Stained","k",7,66],["Kukri Knife | Night","k",7,81],["Kukri Knife | Blue Steel","k",7,75],["Kukri Knife | Case Hardened","k",7,120],["Kukri Knife | Slaughter","k",7,180],["Kukri Knife | Fade","k",7,420],["Kukri Knife | Crimson Web","k",7,210],["Karambit | Ruby","k",7,4500],["Karambit | Sapphire","k",7,7000],["Karambit | Black Pearl","k",7,3500],["Butterfly Knife | Ruby","k",7,5500],["Butterfly Knife | Sapphire","k",7,8500],["M9 Bayonet | Ruby","k",7,4000],["M9 Bayonet | Sapphire","k",7,6500],["Butterfly Knife | Gamma Doppler Emerald","k",7,7366],["Karambit | Gamma Doppler Emerald","k",7,3500],["M9 Bayonet | Gamma Doppler Emerald","k",7,3000],["Karambit | Doppler Phase 1","k",7,760],["Karambit | Doppler Phase 2","k",7,800],["Karambit | Doppler Phase 3","k",7,720],["Karambit | Doppler Phase 4","k",7,960],["Karambit | Gamma Doppler Phase 1","k",7,900],["Karambit | Gamma Doppler Phase 2","k",7,900],["Karambit | Gamma Doppler Phase 3","k",7,900],["Karambit | Gamma Doppler Phase 4","k",7,990.0],["M9 Bayonet | Doppler Phase 1","k",7,646],["M9 Bayonet | Doppler Phase 2","k",7,680],["M9 Bayonet | Doppler Phase 3","k",7,612],["M9 Bayonet | Doppler Phase 4","k",7,816],["M9 Bayonet | Black Pearl","k",7,2992.0],["M9 Bayonet | Gamma Doppler Phase 1","k",7,765],["M9 Bayonet | Gamma Doppler Phase 2","k",7,765],["M9 Bayonet | Gamma Doppler Phase 3","k",7,765],["M9 Bayonet | Gamma Doppler Phase 4","k",7,841.5],["Butterfly Knife | Doppler Phase 1","k",7,836.0],["Butterfly Knife | Doppler Phase 2","k",7,880.0],["Butterfly Knife | Doppler Phase 3","k",7,792.0],["Butterfly Knife | Doppler Phase 4","k",7,1056],["Butterfly Knife | Black Pearl","k",7,3872.0],["Butterfly Knife | Gamma Doppler Phase 1","k",7,990.0],["Butterfly Knife | Gamma Doppler Phase 2","k",7,990.0],["Butterfly Knife | Gamma Doppler Phase 3","k",7,990.0],["Butterfly Knife | Gamma Doppler Phase 4","k",7,1089.0],["Talon Knife | Doppler Phase 1","k",7,760],["Talon Knife | Doppler Phase 2","k",7,800],["Talon Knife | Doppler Phase 3","k",7,720],["Talon Knife | Doppler Phase 4","k",7,960],["Talon Knife | Ruby","k",7,4480],["Talon Knife | Sapphire","k",7,7000],["Talon Knife | Black Pearl","k",7,3520.0],["Skeleton Knife | Doppler Phase 1","k",7,608],["Skeleton Knife | Doppler Phase 2","k",7,640],["Skeleton Knife | Doppler Phase 3","k",7,576],["Skeleton Knife | Doppler Phase 4","k",7,768],["Skeleton Knife | Ruby","k",7,3584],["Skeleton Knife | Sapphire","k",7,5600],["Skeleton Knife | Black Pearl","k",7,2816],["Bayonet | Doppler Phase 1","k",7,456],["Bayonet | Doppler Phase 2","k",7,480],["Bayonet | Doppler Phase 3","k",7,432],["Bayonet | Doppler Phase 4","k",7,576],["Bayonet | Ruby","k",7,2688],["Bayonet | Sapphire","k",7,4200],["Bayonet | Black Pearl","k",7,2112],["Bayonet | Gamma Doppler Phase 1","k",7,540],["Bayonet | Gamma Doppler Phase 2","k",7,540],["Bayonet | Gamma Doppler Phase 3","k",7,540],["Bayonet | Gamma Doppler Phase 4","k",7,594],["Bayonet | Gamma Doppler Emerald","k",7,2106],["Flip Knife | Doppler Phase 1","k",7,380],["Flip Knife | Doppler Phase 2","k",7,400],["Flip Knife | Doppler Phase 3","k",7,360],["Flip Knife | Doppler Phase 4","k",7,480],["Flip Knife | Ruby","k",7,2240],["Flip Knife | Sapphire","k",7,3500],["Flip Knife | Black Pearl","k",7,1760.0],["Flip Knife | Gamma Doppler Phase 1","k",7,450],["Flip Knife | Gamma Doppler Phase 2","k",7,450],["Flip Knife | Gamma Doppler Phase 3","k",7,450],["Flip Knife | Gamma Doppler Phase 4","k",7,495.0],["Flip Knife | Gamma Doppler Emerald","k",7,1755],["Huntsman Knife | Doppler Phase 1","k",7,418.0],["Huntsman Knife | Doppler Phase 2","k",7,440.0],["Huntsman Knife | Doppler Phase 3","k",7,396.0],["Huntsman Knife | Doppler Phase 4","k",7,528],["Huntsman Knife | Ruby","k",7,2464],["Huntsman Knife | Sapphire","k",7,3850.0],["Huntsman Knife | Black Pearl","k",7,1936.0],["Huntsman Knife | Gamma Doppler Phase 1","k",7,495.0],["Huntsman Knife | Gamma Doppler Phase 2","k",7,495.0],["Huntsman Knife | Gamma Doppler Phase 3","k",7,495.0],["Huntsman Knife | Gamma Doppler Phase 4","k",7,544.5],["Huntsman Knife | Gamma Doppler Emerald","k",7,1930.5],["Navaja Knife | Doppler Phase 1","k",7,228],["Navaja Knife | Doppler Phase 2","k",7,240],["Navaja Knife | Doppler Phase 3","k",7,216],["Navaja Knife | Doppler Phase 4","k",7,288],["Navaja Knife | Ruby","k",7,1344],["Navaja Knife | Sapphire","k",7,2100],["Navaja Knife | Black Pearl","k",7,1056],["Stiletto Knife | Doppler Phase 1","k",7,304],["Stiletto Knife | Doppler Phase 2","k",7,320],["Stiletto Knife | Doppler Phase 3","k",7,288],["Stiletto Knife | Doppler Phase 4","k",7,384],["Stiletto Knife | Ruby","k",7,1792],["Stiletto Knife | Sapphire","k",7,2800],["Stiletto Knife | Black Pearl","k",7,1408],["Ursus Knife | Doppler Phase 1","k",7,266],["Ursus Knife | Doppler Phase 2","k",7,280],["Ursus Knife | Doppler Phase 3","k",7,252],["Ursus Knife | Doppler Phase 4","k",7,336],["Ursus Knife | Ruby","k",7,1568],["Ursus Knife | Sapphire","k",7,2450],["Ursus Knife | Black Pearl","k",7,1232],["Gut Knife | Doppler Phase 1","k",7,190],["Gut Knife | Doppler Phase 2","k",7,200],["Gut Knife | Doppler Phase 3","k",7,180],["Gut Knife | Doppler Phase 4","k",7,240],["Gut Knife | Ruby","k",7,1120],["Gut Knife | Sapphire","k",7,1750],["Gut Knife | Black Pearl","k",7,880.0],["Gut Knife | Gamma Doppler Phase 1","k",7,225],["Gut Knife | Gamma Doppler Phase 2","k",7,225],["Gut Knife | Gamma Doppler Phase 3","k",7,225],["Gut Knife | Gamma Doppler Phase 4","k",7,247.5],["Gut Knife | Gamma Doppler Emerald","k",7,877.5],["Falchion Knife | Doppler Phase 1","k",7,228],["Falchion Knife | Doppler Phase 2","k",7,240],["Falchion Knife | Doppler Phase 3","k",7,216],["Falchion Knife | Doppler Phase 4","k",7,288],["Falchion Knife | Ruby","k",7,1344],["Falchion Knife | Sapphire","k",7,2100],["Falchion Knife | Black Pearl","k",7,1056],["Bowie Knife | Doppler Phase 1","k",7,380],["Bowie Knife | Doppler Phase 2","k",7,400],["Bowie Knife | Doppler Phase 3","k",7,360],["Bowie Knife | Doppler Phase 4","k",7,480],["Bowie Knife | Ruby","k",7,2240],["Bowie Knife | Sapphire","k",7,3500],["Bowie Knife | Black Pearl","k",7,1760.0],["Shadow Daggers | Doppler Phase 1","k",7,228],["Shadow Daggers | Doppler Phase 2","k",7,240],["Shadow Daggers | Doppler Phase 3","k",7,216],["Shadow Daggers | Doppler Phase 4","k",7,288],["Shadow Daggers | Ruby","k",7,1344],["Shadow Daggers | Sapphire","k",7,2100],["Shadow Daggers | Black Pearl","k",7,1056],["Paracord Knife | Doppler Phase 1","k",7,190],["Paracord Knife | Doppler Phase 2","k",7,200],["Paracord Knife | Doppler Phase 3","k",7,180],["Paracord Knife | Doppler Phase 4","k",7,240],["Paracord Knife | Ruby","k",7,1120],["Paracord Knife | Sapphire","k",7,1750],["Paracord Knife | Black Pearl","k",7,880.0],["Survival Knife | Doppler Phase 1","k",7,190],["Survival Knife | Doppler Phase 2","k",7,200],["Survival Knife | Doppler Phase 3","k",7,180],["Survival Knife | Doppler Phase 4","k",7,240],["Survival Knife | Ruby","k",7,1120],["Survival Knife | Sapphire","k",7,1750],["Survival Knife | Black Pearl","k",7,880.0],["Nomad Knife | Doppler Phase 1","k",7,190],["Nomad Knife | Doppler Phase 2","k",7,200],["Nomad Knife | Doppler Phase 3","k",7,180],["Nomad Knife | Doppler Phase 4","k",7,240],["Nomad Knife | Ruby","k",7,1120],["Nomad Knife | Sapphire","k",7,1750],["Nomad Knife | Black Pearl","k",7,880.0],["Bloodhound Gloves | Charred","g",7,120],["Bloodhound Gloves | Snakebite","g",7,140],["Bloodhound Gloves | Bronzed","g",7,130],["Bloodhound Gloves | Guerrilla","g",7,160],["Broken Fang Gloves | Jade","g",7,600],["Broken Fang Gloves | Needle Point","g",7,500],["Broken Fang Gloves | Unhinged","g",7,450],["Broken Fang Gloves | Yellow-banded","g",7,350],["Driver Gloves | Convoy","g",7,150],["Driver Gloves | Crimson Weave","g",7,750],["Driver Gloves | Diamondback","g",7,1100],["Driver Gloves | King Snake","g",7,2122],["Driver Gloves | Lunar Weave","g",7,330],["Driver Gloves | Overtake","g",7,350],["Driver Gloves | Racing Green","g",7,300],["Driver Gloves | Black Tie","g",7,1029],["Driver Gloves | Imperial Plaid","g",7,878],["Driver Gloves | Snow Leopard","g",7,1864],["Driver Gloves | Wave Chaser","g",7,1765],["Driver Gloves | Rezan the Red","g",7,400],["Hand Wraps | Badlands","g",7,220],["Hand Wraps | Cobalt Skulls","g",7,650],["Hand Wraps | Constrictor","g",7,250],["Hand Wraps | Duct Tape","g",7,200],["Hand Wraps | Giraffe","g",7,280],["Hand Wraps | Leather","g",7,160],["Hand Wraps | Overprint","g",7,420],["Hand Wraps | Slaughter","g",7,330],["Hand Wraps | Spruce DDPAT","g",7,150],["Hand Wraps | CAUTION!","g",7,380],["Hydra Gloves | Case Hardened","g",7,450],["Hydra Gloves | Emerald","g",7,1500],["Hydra Gloves | Mangrove","g",7,500],["Hydra Gloves | Rattler","g",7,650],["Moto Gloves | Boom!","g",7,330],["Moto Gloves | Cool Mint","g",7,700],["Moto Gloves | Eclipse","g",7,450],["Moto Gloves | Polygon","g",7,350],["Moto Gloves | POW!","g",7,360],["Moto Gloves | Spearmint","g",7,800],["Moto Gloves | Transport","g",7,280],["Moto Gloves | Turtle","g",7,300],["Specialist Gloves | Buckshot","g",7,380],["Specialist Gloves | Crimson Kimono","g",7,1500],["Specialist Gloves | Crimson Web","g",7,980],["Specialist Gloves | Emerald Web","g",7,2800],["Specialist Gloves | Fade","g",7,1500],["Specialist Gloves | Field Agent","g",7,300],["Specialist Gloves | Foundation","g",7,250],["Specialist Gloves | Forest DDPAT","g",7,400],["Specialist Gloves | Marble Fade","g",7,1200],["Specialist Gloves | Mogul","g",7,400],["Specialist Gloves | Tiger Strike","g",7,700],["Specialist Gloves | Lt. Commander","g",7,500],["Specialist Gloves | Pillow Punchers","g",7,4168],["Sport Gloves | Amphibious","g",7,2285],["Sport Gloves | Arid","g",7,220],["Sport Gloves | Big Game","g",7,450],["Sport Gloves | Bronze Morph","g",7,480],["Sport Gloves | Hedge Maze","g",7,1700],["Sport Gloves | Nocts","g",7,2710],["Sport Gloves | Omega","g",7,1287],["Sport Gloves | Pandora's Box","g",7,21729],["Sport Gloves | Scarlet Shamagh","g",7,939],["Sport Gloves | Slingshot","g",7,2557],["Sport Gloves | Superconductor","g",7,1400],["Sport Gloves | Vice","g",7,5550]];
+const WEAR_RE = /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/;
+const normN = (n) => String(n || '').replace(/’/g, "'").replace(/^★\s*/, '').replace(/^(StatTrak™|Souvenir)\s+/, '').replace(WEAR_RE, '').trim().toLowerCase();
+const BUILTIN = new Map();
+for (const [n, g, r, u] of BUILTIN_ROWS) BUILTIN.set(normN(n), { g, r, u });
+/* 25 культовых скинов: наценка ×3–×6 (запасная цена в $, если нет данных) */
+const ICONIC = {
+  'awp | dragon lore': 4000, 'ak-47 | wild lotus': 9000, 'm4a4 | howl': 4500, 'awp | gungnir': 6000, 'awp | medusa': 2200,
+  'ak-47 | fire serpent': 1800, 'm4a4 | poseidon': 600, 'm4a1-s | welcome to the jungle': 450, 'ak-47 | gold arabesque': 1100, 'awp | lightning strike': 120,
+  'karambit | fade': 1400, 'butterfly knife | fade': 1500, 'm9 bayonet | fade': 1100, 'talon knife | fade': 1100, 'skeleton knife | fade': 800,
+  'karambit | tiger tooth': 700, 'butterfly knife | slaughter': 700, 'karambit | crimson web': 700, 'karambit | case hardened': 400,
+  "sport gloves | pandora's box": 5000, 'sport gloves | vice': 3000, 'specialist gloves | emerald web': 2000, 'driver gloves | crimson weave': 750,
+  'sport gloves | hedge maze': 1700, 'desert eagle | blaze': 450
+};
+const iconicMk = (usd) => (usd > 2500 ? 3 : usd > 1200 ? 4 : usd > 500 ? 5 : 6);
+
+/* ================= загрузка из интернета ================= */
+const BASES = ['https://bymykel.github.io/CSGO-API/api/en', 'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en'];
+async function getJSON(file) {
+  let last;
+  for (const b of BASES) {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 90000);
+    try { const r = await fetch(`${b}/${file}`, { signal: ctl.signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+    catch (e) { last = e; } finally { clearTimeout(t); }
+  }
+  throw last || new Error('Источник недоступен');
+}
+/* живые цены Skinport: кэшируются и применяются при следующем запуске, чтобы цены не менялись во время игры */
+const SKP_KEY = 'vaultline_skp_v1';
+let SKP = {};
+try { const c = JSON.parse(localStorage.getItem(SKP_KEY) || 'null'); if (c && c.m) SKP = c.m; } catch (e) { /* нет кэша */ }
+async function refreshSkinport() {
+  try {
+    const c = JSON.parse(localStorage.getItem(SKP_KEY) || 'null'); if (c && Date.now() - c.t < 24 * 3600e3) return;
+  } catch (e) { /* ок */ }
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 60000);
+    const r = await fetch('https://api.skinport.com/v1/items?app_id=730&currency=USD', { signal: ctl.signal }); if (!r.ok) return;
+    const arr = await r.json(); const ord = { 'Factory New': 0, 'Minimal Wear': 1, 'Field-Tested': 2, 'Well-Worn': 3, 'Battle-Scarred': 4 }; const best = {};
+    for (const x of arr) {
+      const nm = x.market_hash_name; if (!nm || /^(StatTrak|Souvenir)/.test(nm)) continue;
+      const m = nm.match(/^(.*) \((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)$/); if (!m) continue;
+      const p = x.min_price != null ? x.min_price : x.suggested_price; if (!(p > 0)) continue;
+      const k = normN(m[1]), o = ord[m[2]]; if (!best[k] || o < best[k][0]) best[k] = [o, p];
+    }
+    const out = {}; for (const k in best) out[k] = +best[k][1].toFixed(2);
+    localStorage.setItem(SKP_KEY, JSON.stringify({ t: Date.now(), m: out }));
+  } catch (e) { /* источник цен недоступен — не критично */ }
+}
+
+/* ================= каталог ================= */
+const DATA = { items: [], byKey: new Map(), crates: [], ready: false, estCount: 0, liveCount: 0 };
+function tierOf(r, cat) {
+  const id = (r && r.id) || '';
+  if (/common_weapon/.test(id)) return /uncommon/.test(id) ? 2 : 1;
+  if (/rare_weapon/.test(id)) return 3;
+  if (/mythical_weapon/.test(id)) return 4;
+  if (/legendary_weapon/.test(id)) return 5;
+  if (/ancient_weapon/.test(id)) return 6;
+  if (/contraband/.test(id)) return 8;
+  if (/^rarity_ancient/.test(id) || cat === 'k' || cat === 'g') return 7;
+  return 0;
+}
+const EST_USD = { 1: 0.06, 2: 0.18, 3: 0.9, 4: 4, 5: 16, 6: 60, 7: 260, 8: 2500 };
+const EST_W = { 'AWP': 1.6, 'AK-47': 1.5, 'M4A4': 1.2, 'M4A1-S': 1.2, 'Desert Eagle': 1.2, 'USP-S': 1.1, 'Glock-18': 1.0 };
+function keyOf(rawName, phase) {
+  const base = String(rawName || '').replace(WEAR_RE, '');
+  if (/^★/.test(base) && !base.includes(' | ')) return normN(base) + ' | vanilla';
+  return normN(base) + (phase ? ' ' + String(phase).toLowerCase() : '');
+}
+function wearProbs(min, max) {
+  const out = [0, 0, 0]; const span = max - min;
+  if (!(span > 0)) { out[min < 0.07 ? 0 : min < 0.15 ? 1 : 2] = 1; return out; }
+  WEARS.forEach((w, i) => { const lo = Math.max(min, w.lo), hi = Math.min(max, w.hi); if (hi > lo) out[i] = (hi - lo) / span; });
+  const s = out[0] + out[1] + out[2]; if (s <= 0) out[2] = 1; else for (let i = 0; i < 3; i++) out[i] /= s;
+  return out;
+}
+function addItem(x) {
+  if (!x || !x.name || !x.image || !x.rarity) return null;
+  const base = String(x.name).replace(WEAR_RE, '');
+  if (/^Souvenir/.test(base)) return null;
+  const key = keyOf(base, x.phase); if (DATA.byKey.has(key)) return DATA.byKey.get(key);
+  const cname = x.category && x.category.name; const cat = cname === 'Knives' ? 'k' : cname === 'Gloves' ? 'g' : (/^★/.test(base) ? (/Gloves|Wraps/.test(base) ? 'g' : 'k') : 'w');
+  const tier = tierOf(x.rarity, cat); if (!tier) return null;
+  const clean = base.replace(/^★\s*/, '');
+  const weapon = (x.weapon && x.weapon.name) || clean.split(' | ')[0];
+  const parts = clean.split(' | '); const pat = parts.slice(1).join(' | ') || 'Vanilla';
+  const name = (/^★/.test(base) ? '★ ' : '') + weapon + ' | ' + pat + (x.phase && !new RegExp(x.phase, 'i').test(pat) ? ' (' + x.phase + ')' : '');
+  const bi = BUILTIN.get(key) || (x.phase ? BUILTIN.get(normN(weapon) + ' | ' + String(x.phase).toLowerCase()) : null);
+  let usd, src;
+  if (SKP[key] > 0) { usd = SKP[key]; src = 'live'; }
+  else if (bi) { usd = bi.u; src = 'base'; }
+  else if (ICONIC[key]) { usd = ICONIC[key]; src = 'base'; }
+  else {
+    const r = seeded('est' + key)(); usd = EST_USD[tier] * (EST_W[weapon] || 1) * (0.55 + r * 1.1); src = 'est';
+  }
+  const min = x.min_float != null ? +x.min_float : 0, max = x.max_float != null ? +x.max_float : 1;
+  const it = {
+    key, name, weapon, pat, img: x.image, tier, rc: (x.rarity.color || TIERS[tier][1]), rn: TIERS[tier][0], cat,
+    usd, est: src === 'est', src, min, max, st: !!x.stattrak, cols: (x.collections || []).map((c) => c.name || c.id).filter(Boolean), crates: (x.crates || []).map((c) => c.name),
+    iconic: !!ICONIC[key], pw: wearProbs(min, max), prices: [0, 0, 0]
+  };
+  it.mk = it.iconic ? iconicMk(usd) : 1;
+  const bw = it.pw.findIndex((p) => p > 0.0001);
+  for (let w = 0; w < 3; w++) if (it.pw[w] > 0.0001 && w >= bw) it.prices[w] = Math.max(5, Math.round(usd * COIN_PER_USD * it.mk * RANKF[w - bw]));
+  it.ev = it.prices.reduce((a, p, w) => a + p * it.pw[w], 0) * (it.st ? 1.04 : 1);
+  it.pmin = Math.min(...it.prices.filter((p) => p > 0)); it.pmax = Math.max(...it.prices);
+  DATA.byKey.set(key, it); DATA.items.push(it);
+  if (it.est) DATA.estCount++; else if (it.src === 'live') DATA.liveCount++;
+  return it;
+}
+function buildCatalog(skinsRaw) {
+  for (const x of Array.isArray(skinsRaw) ? skinsRaw : []) addItem(x);
+}
+const itemByName = (n) => DATA.byKey.get(keyOf(n));
+function rollWear(it) {
+  const f = it.min + rfloat() * (it.max - it.min); const w = f < 0.07 ? 0 : f < 0.15 ? 1 : 2;
+  return { f, w: it.prices[w] > 0 ? w : it.prices.findIndex((p) => p > 0) };
+}
+/* экземпляр в инвентаре — самодостаточный снимок */
+function makeInst(it, w, stat, f, src) {
+  return { id: uid(), key: it.key, name: it.name, img: it.img, rc: it.rc, rn: it.rn, tier: it.tier, cat: it.cat, w, st: !!stat, f: f == null ? (it.min + (it.max - it.min) * 0.5) : f, min: it.min, max: it.max, cols: it.cols, p: Math.round(it.prices[w] * (stat ? ST_MULT : 1)), src, ts: Date.now(), iconic: it.iconic };
+}
+const wearName = (w) => WEARS[w].n;
+function itemBox(img, rc, name, cls = '') {
+  return `<img ${cls} loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(img)}" alt="${esc(name)}" onerror="this.style.visibility='hidden'">`;
+}
+
+/* ================= темы и обложки кейсов ================= */
+const THEMES = [
+  { id: 'fire', label: 'Огненный', a: '#ff6a1f', b: '#ffb02e', c: '#2a0d06', p: 'radial-gradient(circle at 20% 80%,rgba(255,140,30,.38) 0 2px,transparent 3px),radial-gradient(circle at 70% 60%,rgba(255,200,60,.32) 0 2px,transparent 3px)', s: '38px 38px' },
+  { id: 'ice', label: 'Ледяной', a: '#5fd4ff', b: '#b9ecff', c: '#061a2b', p: 'repeating-conic-gradient(from 0deg at 50% 120%,rgba(160,230,255,.16) 0 6deg,transparent 6deg 14deg)', s: '100% 100%' },
+  { id: 'cyber', label: 'Киберпанк', a: '#ff2bd6', b: '#19f0ff', c: '#12062b', p: 'linear-gradient(rgba(25,240,255,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,43,214,.18) 1px,transparent 1px)', s: '22px 22px' },
+  { id: 'neon', label: 'Неоновый', a: '#39ff14', b: '#00ffd0', c: '#03160e', p: 'repeating-linear-gradient(115deg,rgba(57,255,20,.18) 0 3px,transparent 3px 18px)', s: '100% 100%' },
+  { id: 'gold', label: 'Золотой', a: '#ffcc33', b: '#ff9d00', c: '#241703', p: 'repeating-conic-gradient(from 0deg at 50% 110%,rgba(255,210,80,.18) 0 5deg,transparent 5deg 12deg)', s: '100% 100%' },
+  { id: 'redblack', label: 'Красно-чёрный', a: '#ff2a3d', b: '#ff6b6b', c: '#1a0508', p: 'repeating-linear-gradient(135deg,rgba(255,42,61,.2) 0 10px,transparent 10px 24px)', s: '100% 100%' },
+  { id: 'purple', label: 'Фиолетовый', a: '#a259ff', b: '#ff59d1', c: '#140626', p: 'radial-gradient(40% 30% at 25% 30%,rgba(162,89,255,.38),transparent),radial-gradient(35% 30% at 75% 65%,rgba(255,89,209,.3),transparent)', s: '100% 100%' },
+  { id: 'tech', label: 'Технологичный', a: '#4da3ff', b: '#9fd0ff', c: '#07101e', p: 'linear-gradient(60deg,rgba(77,163,255,.14) 25%,transparent 25.5%),linear-gradient(-60deg,rgba(77,163,255,.14) 25%,transparent 25.5%)', s: '28px 48px' },
+  { id: 'toxic', label: 'Токсичный', a: '#9dff00', b: '#2dff8a', c: '#0b1a03', p: 'radial-gradient(circle at 30% 30%,rgba(157,255,0,.24) 0 6px,transparent 7px),radial-gradient(circle at 70% 70%,rgba(45,255,138,.22) 0 10px,transparent 11px)', s: '54px 54px' },
+  { id: 'ocean', label: 'Океанический', a: '#18c5d9', b: '#4d7cff', c: '#041824', p: 'repeating-radial-gradient(circle at 50% 130%,rgba(24,197,217,.18) 0 8px,transparent 8px 20px)', s: '100% 100%' },
+  { id: 'sunset', label: 'Закатный', a: '#ff5e8a', b: '#ffb347', c: '#240a1a', p: 'repeating-linear-gradient(180deg,rgba(255,120,120,.14) 0 2px,transparent 2px 14px)', s: '100% 100%' },
+  { id: 'emerald', label: 'Изумрудный', a: '#12d68a', b: '#d4ff7a', c: '#04170f', p: 'repeating-conic-gradient(from 45deg at 50% 50%,rgba(18,214,138,.14) 0 8deg,transparent 8deg 20deg)', s: '100% 100%' }
+];
+const TH = (id) => THEMES.find((t) => t.id === id) || THEMES[0];
+const KW = [[/phoenix|wildfire|fire|flame|inferno|blaze|torch/i, 'fire'], [/winter|frost|\bice\b|snow|glacier/i, 'ice'], [/revolution|fracture|cyber|digital/i, 'cyber'], [/prisma|spectrum|kilowatt|fever|chroma/i, 'neon'], [/glove|gold|golden|royal/i, 'gold'], [/danger|zone|shattered|breakout|vanguard|clutch/i, 'redblack'], [/shadow|dreams|nightmare|hydra/i, 'purple'], [/cs20|gallery|falchion|huntsman|recoil|esports|weapon case/i, 'tech'], [/gamma|snakebite|venom|toxic/i, 'toxic'], [/horizon|riptide|ocean|wave|bravo/i, 'ocean'], [/desert|sunset|dust|arms deal|revolver/i, 'sunset']];
+function pickTheme(slug, name) { for (const [re, id] of KW) if (re.test(name) || re.test(slug)) return TH(id); return THEMES[hash(slug) % THEMES.length]; }
+const EMB = {
+  star: 'M12 2l3 7 7 .8-5.3 4.8 1.6 7.4L12 18l-6.3 4 1.6-7.4L2 9.8 9 9z', flame: 'M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-10z',
+  flake: 'M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3l3 3 3-3M9 21l3-3 3 3', bolt: 'M13 2L4 14h7l-1 8 9-12h-7z', diamond: 'M12 2l8 7-8 13L4 9zM4 9h16',
+  knife: 'M5 20L19 4c-1 6-4 11-10 14zM5 20l-2 2', glove: 'M7 21v-8L5 9V5a1 1 0 012 0v4V3a1 1 0 012 0v6V3a1 1 0 012 0v7V5a1 1 0 012 0v9l2-2a1.4 1.4 0 012 2l-3 7z',
+  target: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 7a5 5 0 100 10 5 5 0 000-10zM12 11a1 1 0 100 2 1 1 0 000-2z', skull: 'M12 3a8 8 0 00-5 14v3h3v-2h4v2h3v-3a8 8 0 00-5-14zM9 11a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM15 11a1.5 1.5 0 100 3 1.5 1.5 0 000-3z',
+  sun: 'M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2M18 18l2 2M4 20l2-2M18 6l2-2', flower: 'M12 3c4 3 6 7 0 14C6 10 8 6 12 3zM12 17v5', crown: 'M3 8l4 4 5-7 5 7 4-4-2 11H5z'
+};
+function crateSvg(th, emb) {
+  const p = EMB[emb] || EMB.star;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 170'><defs><linearGradient id='l' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${th.a}' stop-opacity='.55'/><stop offset='1' stop-color='${th.c}'/></linearGradient><linearGradient id='r' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='${th.a}'/><stop offset='1' stop-color='${th.c}' stop-opacity='.9'/></linearGradient><linearGradient id='t' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${th.b}'/><stop offset='1' stop-color='${th.a}'/></linearGradient></defs>`
+    + `<path d='M20 58L100 28L180 58L100 90Z' fill='url(#t)' stroke='${th.b}' stroke-width='2' stroke-linejoin='round'/><path d='M20 58L100 90V158L20 126Z' fill='url(#l)' stroke='${th.b}' stroke-width='2' stroke-linejoin='round'/><path d='M180 58L100 90V158L180 126Z' fill='url(#r)' stroke='${th.b}' stroke-width='2' stroke-linejoin='round'/>`
+    + `<path d='M100 90V158' stroke='#fff' stroke-opacity='.5' stroke-width='3'/><path d='M60 43L140 75M140 43L60 75' stroke='#000' stroke-opacity='.25' stroke-width='3'/>`
+    + `<g transform='translate(128 88) scale(1.7) skewY(-24)' fill='#fff' fill-opacity='.18' stroke='#fff' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'><path d='${p}'/></g>`
+    + `<g transform='translate(34 88) scale(1.7) skewY(24)' fill='#fff' fill-opacity='.1' stroke='${th.b}' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'><path d='${p}'/></g></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+/* ================= КАЛЕНДАРЬ КЕЙСОВ (обновляется раз в месяц/сезон — попросите Claude) =================
+   season  — главные события сезона (3 месяца), month — 4 менее громких события месяца, без повторов с сезонными.
+   T — целевая цена кейса в токенах (реальная цена считается из состава и будет близка к ней). re — слова в названиях скинов для тематики. */
+const CALENDAR = {
+  updated: '20.10.2026', seasonName: 'Осень 2026 (сентябрь–ноябрь)', monthName: 'Октябрь 2026',
+  season: [
+    { name: 'День знаний', date: '1 сентября', T: 12000, theme: 'sunset', emb: 'star', re: /book|school|class|pencil|teacher|scholar|elite|honor/i, desc: 'Начало учебного года, 1 сентября.' },
+    { name: 'Презентация iPhone 18', date: '9 сентября', T: 55000, theme: 'tech', emb: 'bolt', re: /cyber|neon|neo|digital|hyper|circuit|laser|silicon|chrome|titan|pulse|code|tech/i, desc: 'Осенняя презентация Apple 9 сентября 2026: iPhone 18 Pro и первый складной iPhone. Дорогие скины в технологичном стиле.' },
+    { name: 'Золотая осень', date: 'сентябрь–ноябрь', T: 25000, theme: 'fire', emb: 'flower', re: /leaf|forest|autumn|wood|oak|harvest|rust|ember|amber|fall|moss|gold|copper|bronze/i, desc: 'Бархатный сезон: тёплые янтарные и лесные оттенки.' },
+    { name: 'Хэллоуин', date: '31 октября', T: 35000, theme: 'purple', emb: 'skull', re: /skull|bone|blood|zombie|death|nightmare|phantom|ghost|hex|voodoo|demon|doom|dead|spectre|ghoul|grave|reaper|hades|hell|monster|cemetery|spooky|pumpkin/i, desc: 'Жуткие скины к ночи 31 октября.' },
+    { name: 'Чёрная пятница', date: '27 ноября', T: 75000, theme: 'redblack', emb: 'diamond', re: /black|dark|night|shadow|noir|carbon|obsidian|midnight|stealth|dusk|crimson/i, desc: 'Главная распродажа года, 27 ноября. Скидок нет, зато призы крупные.' }
+  ],
+  month: [
+    { name: 'Международный день кофе', date: '1 октября', T: 8000, theme: 'sunset', emb: 'sun', re: /coffee|mocha|brown|espresso|bean|cocoa|latte|caramel|roast|mud/i, desc: 'Тёплые коричневые тона к 1 октября.' },
+    { name: 'День учителя', date: '5 октября', T: 10000, theme: 'emerald', emb: 'star', re: /master|elite|professor|scholar|wisdom|sensei|mentor|teach|guide|code/i, desc: 'Всемирный день учителя, 5 октября.' },
+    { name: 'Нобелевская неделя', date: '5–12 октября', T: 18000, theme: 'gold', emb: 'crown', re: /gold|golden|laurel|prize|medal|crown|royal|emperor|king|champion/i, desc: 'Неделя объявления Нобелевских премий.' },
+    { name: 'День шеф-повара', date: '20 октября', T: 12000, theme: 'redblack', emb: 'flame', re: /fire|flame|hot|blaze|burn|spice|pepper|knife|heat|smoke|grill|kitchen/i, desc: 'Международный день шеф-повара, 20 октября.' }
+  ]
+};
+
+/* ================= группы и сборка кейсов ================= */
+const GROUPS = [
+  { id: 'vanilla', name: 'Ванильные', tag: 'Кейс CS2', desc: 'Настоящие кейсы CS2: оригинальный состав и шансы Valve.' },
+  { id: 'knife', name: 'Ножевые', tag: 'Ножи', desc: 'Только ножи. Чем дороже нож — тем он реже.' },
+  { id: 'glove', name: 'Перчатки', tag: 'Перчатки', desc: 'Только перчатки и обмотки.' },
+  { id: 'weapon', name: 'Оружейные', tag: 'Оружие', desc: 'Скины одного оружия: AK-47, AWP, пистолеты и другие.' },
+  { id: 'rarity', name: 'По редкости', tag: 'Редкость', desc: 'Весь кейс — предметы одной редкости.' },
+  { id: 'season', name: 'Сезонные', tag: 'Сезон', desc: 'Главные события сезона: ' + CALENDAR.seasonName + '. Обновлено ' + CALENDAR.updated + '.' },
+  { id: 'event', name: 'События месяца', tag: 'Месяц', desc: 'Менее громкие события месяца: ' + CALENDAR.monthName + '. Не повторяют сезонные.' },
+  { id: 'theme', name: 'Тематические', tag: 'Тема', desc: 'Огонь, космос, киберпанк и другие темы.' },
+  { id: 'coll', name: 'Коллекции', tag: 'Коллекция', desc: 'Настоящие коллекции Counter-Strike.' },
+  { id: 'price', name: 'По цене', tag: 'Уровень', desc: 'От стартовых до элитных — приз всегда соразмерен цене кейса.' },
+  { id: 'legend', name: 'Культовые', tag: 'Легенды', desc: '25 легендарных скинов с наценкой ×3–×6. Дорого, но есть к чему стремиться.' }
+];
+const GROUP = (id) => GROUPS.find((g) => g.id === id);
+const WT = {
+  CLASSIC: { 3: 7992, 4: 1598, 5: 320, 6: 64, 7: 26 },
+  GEN: { 1: 2500, 2: 3000, 3: 3500, 4: 900, 5: 250, 6: 70, 7: 30, 8: 5 },
+  PREM: { 3: 4500, 4: 3500, 5: 1500, 6: 400, 7: 100 },
+  ONE: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1 }
+};
+const TCAP = { 1: 4, 2: 4, 3: 5, 4: 5, 5: 4, 6: 3, 7: 4, 8: 1 };
+const MIN_COST = 5000;
+const nice = (c) => { c = Math.max(20, c); const s = c < 1000 ? 10 : c < 10000 ? 50 : c < 100000 ? 500 : c < 1e6 ? 5000 : 50000; return Math.max(20, Math.round(c / s) * s); };
+function spread(list, k) { if (list.length <= k) return list.slice(); const s = list.slice().sort((a, b) => a.ev - b.ev); const out = []; for (let i = 0; i < k; i++) out.push(s[Math.round(i * (s.length - 1) / (k - 1))]); return [...new Set(out)]; }
+function stratified(pool, cap) {
+  const by = {}; pool.forEach((i) => (by[i.tier] = by[i.tier] || []).push(i));
+  const tiers = Object.keys(by); if (tiers.length === 1) return spread(pool, cap);
+  return tiers.flatMap((t) => spread(by[t], TCAP[t] || 4));
+}
+function makeCase(def) {
+  let pool = [...new Set(def.items)].filter((i) => i && i.pmax > 0);
+  if (def.cap) { const multi = new Set(pool.map((i) => i.tier)).size > 1; pool = multi ? stratified(pool, 20) : spread(pool, def.cap === 'strat' ? 20 : def.cap); }
+  let W = def.weights || WT.GEN; if (def.flat) { W = {}; pool.forEach((i) => { W[i.tier] = (W[i.tier] || 0) + 1; }); }
+  const minCost = def.minCost != null ? def.minCost : (def.group === 'vanilla' ? 0 : MIN_COST);
+  let entries = [], cost = 0;
+  for (let round = 0; round < 24; round++) {
+    const by = {}; pool.forEach((i) => { if (W[i.tier] > 0) (by[i.tier] = by[i.tier] || []).push(i); });
+    const tiers = Object.keys(by).map(Number).sort((a, b) => a - b); const tw = tiers.reduce((s, t) => s + W[t], 0);
+    if (!tiers.length) return null;
+    entries = [];
+    for (const t of tiers) {
+      const list = by[t]; const ws = list.map((i) => (def.inv ? Math.pow(Math.max(i.ev, 1), -0.7) : 1)); const sw = ws.reduce((a, b) => a + b, 0);
+      list.forEach((it, k) => entries.push({ it, tier: t, p: (W[t] / tw) * ws[k] / sw }));
+    }
+    const ev = entries.reduce((s, e) => s + e.p * e.it.ev, 0); cost = nice(ev / (def.rtp || 0.9));
+    if (minCost && cost < minCost) { if (pool.length <= 8) return null; pool = pool.slice().sort((a, b) => a.ev - b.ev).slice(Math.max(1, Math.ceil(pool.length * 0.15))); continue; }
+    if (!def.maxRatio) break;
+    const bad = pool.filter((i) => i.pmax > def.maxRatio * cost);
+    if (!bad.length) break; if (pool.length - bad.length < 6) break;
+    pool = pool.filter((i) => !bad.includes(i));
+  }
+  if (minCost && cost < minCost) return null;
+  if (entries.length < 6) return null;
+  const tierList = [...new Set(entries.map((e) => e.tier))].sort((a, b) => b - a).map((t) => ({ tier: t, list: entries.filter((e) => e.tier === t), p: entries.filter((e) => e.tier === t).reduce((s, e) => s + e.p, 0) }));
+  const ranked = entries.slice().sort((a, b) => b.tier - a.tier || b.it.ev - a.it.ev); const show = []; const seen = new Set();
+  for (const e of ranked) { if (show.length >= 3) break; if (seen.has(e.it.weapon)) continue; seen.add(e.it.weapon); show.push(e.it); }
+  for (const e of ranked) { if (show.length >= 3) break; if (!show.includes(e.it)) show.push(e.it); }
+  const slug = (def.group + '-' + slugify(def.name)) || 'case';
+  const th = def.theme ? TH(def.theme) : pickTheme(slug, def.name);
+  const maxP = Math.max(...entries.map((e) => e.it.pmax));
+  return { slug, name: def.name, group: def.group, th, emb: def.emb || 'star', desc: def.desc || '', entries, tierList, cost, rtp: def.rtp || 0.9, show, img: def.img || '', date: def.date || 0, maxP, ev: cost * (def.rtp || 0.9) };
+}
+const CASES = [];
+function pushCase(def) { const c = makeCase(def); if (!c) return; if (CASES.some((x) => x.slug === c.slug)) c.slug += '-' + (CASES.length + 1); CASES.push(c); }
+
+function genCases(cratesRaw) {
+  CASES.length = 0;
+  const I = DATA.items; const W = I.filter((i) => i.cat === 'w'); const K = I.filter((i) => i.cat === 'k'); const G = I.filter((i) => i.cat === 'g');
+  const by = (arr, f) => arr.reduce((m, i) => { const k = f(i); (m[k] = m[k] || []).push(i); return m; }, {});
+  /* ванильные */
+  for (const c of Array.isArray(cratesRaw) ? cratesRaw : []) {
+    if (!c || c.type !== 'Case' || !c.image || !c.name) continue;
+    const items = []; for (const e of [...(c.contains || []), ...(c.contains_rare || [])]) { const it = itemByName(e.name) || addItem(e); if (it) items.push(it); }
+    pushCase({ name: c.name, group: 'vanilla', items, weights: WT.CLASSIC, rtp: 0.88, img: c.image, desc: c.description || '', date: c.first_sale_date ? Date.parse(c.first_sale_date) || 0 : 0 });
+  }
+  /* ножевые */
+  const kt = by(K, (i) => i.weapon); const knifeTheme = ['redblack', 'tech', 'purple', 'gold', 'cyber', 'ice', 'fire', 'toxic', 'ocean', 'sunset', 'neon', 'emerald'];
+  Object.keys(kt).sort().forEach((t, n) => { if (kt[t].length >= 4) pushCase({ name: t + ': арсенал', group: 'knife', items: kt[t].filter((i) => !i.iconic), weights: WT.ONE, inv: true, rtp: 0.92, cap: 20, theme: knifeTheme[n % knifeTheme.length], emb: 'knife', desc: 'Все варианты ножа ' + t + '. Дешёвые окраски выпадают чаще дорогих.' }); });
+  [['Ножи: бюджет', 0, 150, 'toxic'], ['Ножи: классика', 150, 450, 'tech'], ['Ножи: элита', 450, 1500, 'gold']].forEach(([n, lo, hi, th]) => pushCase({ name: n, group: 'knife', items: K.filter((i) => !i.iconic && i.usd >= lo && i.usd < hi), weights: WT.ONE, inv: true, rtp: 0.92, cap: 20, theme: th, emb: 'knife', desc: 'Ножи в диапазоне $' + lo + '–$' + hi + ' по рыночной цене.' }));
+  /* перчатки */
+  const gt = by(G, (i) => i.weapon); const gloveTheme = ['purple', 'cyber', 'sunset', 'emerald', 'fire', 'ocean', 'neon', 'redblack'];
+  Object.keys(gt).sort().forEach((t, n) => { if (gt[t].length >= 4) pushCase({ name: t + ': коллекция', group: 'glove', items: gt[t].filter((i) => !i.iconic), weights: WT.ONE, inv: true, rtp: 0.92, cap: 20, theme: gloveTheme[n % gloveTheme.length], emb: 'glove', desc: 'Все расцветки: ' + t + '.' }); });
+  pushCase({ name: 'Перчатки: всё сразу', group: 'glove', items: G.filter((i) => !i.iconic), weights: WT.ONE, inv: true, rtp: 0.92, cap: 24, theme: 'gold', emb: 'glove', desc: 'Все типы перчаток в одном кейсе.' });
+  pushCase({ name: 'Перчатки: бюджет', group: 'glove', items: G.filter((i) => !i.iconic && i.usd < 300), weights: WT.ONE, inv: true, rtp: 0.92, cap: 20, theme: 'toxic', emb: 'glove', desc: 'Доступные перчатки до $300.' });
+  /* оружейные */
+  const wt = by(W.filter((i) => i.tier <= 6), (i) => i.weapon); const wTheme = ['fire', 'tech', 'ocean', 'purple', 'neon', 'redblack', 'sunset', 'cyber', 'emerald', 'ice', 'toxic', 'gold'];
+  Object.keys(wt).filter((k) => wt[k].length >= 10).sort((a, b) => wt[b].length - wt[a].length).slice(0, 24).forEach((t, n) => pushCase({ name: t + ': арсенал', group: 'weapon', items: wt[t].filter((i) => !i.iconic), weights: WT.GEN, rtp: 0.9, cap: 'strat', maxRatio: 120, theme: wTheme[(hash(t) + n) % wTheme.length], emb: 'target', desc: 'Скины ' + t + ' всех редкостей.' }));
+  /* по редкости */
+  [[1, 'Ширпотреб', 'sunset'], [2, 'Промышленное', 'ice'], [3, 'Армейское', 'tech'], [4, 'Запрещённое', 'purple'], [5, 'Засекреченное', 'cyber'], [6, 'Тайное', 'redblack']].forEach(([t, n, th]) => pushCase({ name: 'Только «' + n + '»', group: 'rarity', items: W.filter((i) => i.tier === t && !i.iconic), weights: WT.ONE, rtp: 0.92, cap: 24, maxRatio: 40, theme: th, emb: 'diamond', desc: 'Только предметы редкости «' + n + '».' }));
+  pushCase({ name: 'Только «Редкие особые»', group: 'rarity', items: [...K, ...G].filter((i) => !i.iconic && i.usd < 700), weights: WT.ONE, inv: true, rtp: 0.92, cap: 24, maxRatio: 25, theme: 'gold', emb: 'crown', desc: 'Ножи и перчатки — только редкие особые.' });
+  /* сезонные и тематические */
+  const rx = (r) => (i) => r.test(i.pat);
+  const mk = (grp, name, re, theme, emb, desc, extra) => pushCase(Object.assign({ name, group: grp, items: I.filter((i) => i.tier <= 7 && !i.iconic && rx(re)(i)), weights: WT.GEN, rtp: 0.9, cap: 'strat', maxRatio: 150, theme, emb, desc }, extra || {}));
+  const cal = (grp, e) => { const T = e.T; const band = I.filter((i) => !i.iconic && i.tier <= 7 && i.ev >= T * 0.4 && i.ev <= T * 2.2 && i.pmin >= T * 0.15); const themed = I.filter((i) => !i.iconic && i.tier <= 7 && e.re.test(i.pat) && i.ev >= T * 0.2 && i.ev <= T * 3);
+    pushCase({ name: e.name, group: grp, items: [...themed, ...band], flat: true, inv: true, rtp: 0.9, cap: 36, maxRatio: 14, theme: e.theme, emb: e.emb, desc: e.date + '. ' + e.desc, minCost: Math.min(T * 0.5, 5000) }); };
+  CALENDAR.season.forEach((e) => cal('season', e));
+  CALENDAR.month.forEach((e) => cal('event', e));
+  mk('theme', 'Огонь и лава', /fire|flame|blaze|inferno|\bhot\b|phoenix|wildfire|dragon|lava|magma|burn|torch|ember|volcano|heat/i, 'fire', 'flame', 'Всё, что горит.');
+  mk('theme', 'Космос', /cosmic|galaxy|\bstar|\bnova\b|orbit|astro|moon|alien|rocket|space|nebula|comet|meteor|planet|solar|eclipse|aurora/i, 'purple', 'star', 'Звёзды, планеты и неон космоса.');
+  mk('theme', 'Киберпанк', /cyber|neon|neo|digital|circuit|laser|hyper|cyrex|retrofit|asiimov|bolt|pulse|wired|code|matrix|tron|synth|techno|hologram|electro/i, 'cyber', 'bolt', 'Неон, схемы и технологии будущего.');
+  mk('theme', 'Звери и драконы', /dragon|beast|wolf|cobra|serpent|tiger|snake|panther|hydra|lion|bear|scorpion|spider|eagle|shark|\brat\b|\bcat\b|fox|kitty|hawk|viper|boa|chimera/i, 'toxic', 'skull', 'Хищники и мифические существа.');
+  mk('theme', 'Золото и роскошь', /gold|golden|royal|crown|tycoon|oligarch|king|queen|emperor|empress|imperial|luxury|diamond|platinum|treasure|riches|aristocrat/i, 'gold', 'crown', 'Золото, короны и дорогая жизнь.');
+  mk('theme', 'Токсичные', /toxic|poison|venom|acid|radiation|hazard|nuclear|atomic|slime|plague|decay|rot|contamin|biohazard|toxin|gamma/i, 'toxic', 'skull', 'Яд, радиация и кислотные цвета.');
+  mk('theme', 'Океан', /ocean|\bsea\b|aqua|water|wave|reef|tide|marine|abyss|deep|neptune|mermaid|nautilus|submarine|pearl|\bblue\b/i, 'ocean', 'flake', 'Глубины и морские мотивы.');
+  mk('theme', 'Пустыня', /desert|dust|sand|dune|oasis|sahara|mirage|camel|bedouin|canyon|arid|cactus|scorpion|mummy|pharaoh|anubis/i, 'sunset', 'sun', 'Песок, жара и древние гробницы.');
+  mk('theme', 'Красно-чёрные', /red|black|crimson|dark|night|shadow|noir|carbon|obsidian|ink|midnight|bloody|scarlet|stealth|dusk/i, 'redblack', 'diamond', 'Агрессивные красно-чёрные скины.');
+  /* коллекции */
+  const ct = by(W.filter((i) => i.tier <= 6 && !i.iconic), (i) => i.cols[0] || ''); delete ct[''];
+  const colNames = Object.keys(ct).filter((k) => ct[k].length >= 9).sort((a, b) => ct[b].length - ct[a].length).slice(0, 36);
+  colNames.forEach((n) => pushCase({ name: n, group: 'coll', items: ct[n], weights: WT.CLASSIC, rtp: 0.9, cap: 'strat', desc: 'Предметы коллекции «' + n + '».' }));
+  /* по цене */
+  [['Стандарт', 3000, 15000, 'neon', 'Дорогие по меркам старта скины без лишней лотереи.'], ['Продвинутый', 8000, 40000, 'purple', 'Дорогие скины и заметные призы.'], ['Элитный', 25000, 120000, 'redblack', 'Только очень дорогие предметы.'], ['Миллионер', 80000, 600000, 'gold', 'Предметы на сотни тысяч токенов.'], ['Магнат', 300000, 1500000, 'cyber', 'Верхушка рынка: призы на миллион.']].forEach(([n, lo, hi, th, d]) => pushCase({ name: n, group: 'price', items: I.filter((i) => !i.iconic && i.tier <= 7 && i.ev >= lo && i.ev <= hi && i.pmin >= lo * 0.4), flat: true, inv: true, rtp: 0.9, cap: 40, maxRatio: 12, theme: th, emb: 'diamond', desc: d }));
+  /* культовые */
+  const IC = I.filter((i) => i.iconic);
+  pushCase({ name: 'Легенды: всё', group: 'legend', items: IC, weights: WT.ONE, inv: true, rtp: 0.93, cap: 25, theme: 'gold', emb: 'crown', desc: 'Все культовые скины: Dragon Lore, Howl, Wild Lotus, Fade и другие. Шанс ниже у самых дорогих.' });
+  pushCase({ name: 'Легенды: винтовки', group: 'legend', items: IC.filter((i) => i.cat === 'w'), weights: WT.ONE, inv: true, rtp: 0.93, cap: 25, theme: 'redblack', emb: 'target', desc: 'Культовое оружие: AWP, AK-47, M4.' });
+  pushCase({ name: 'Легенды: ножи', group: 'legend', items: IC.filter((i) => i.cat === 'k'), weights: WT.ONE, inv: true, rtp: 0.93, cap: 25, theme: 'purple', emb: 'knife', desc: 'Fade, Tiger Tooth, Slaughter и другие знаменитые ножи.' });
+  pushCase({ name: 'Легенды: перчатки', group: 'legend', items: IC.filter((i) => i.cat === 'g'), weights: WT.ONE, inv: true, rtp: 0.93, theme: 'emerald', emb: 'glove', desc: 'Pandora\'s Box, Vice, Emerald Web и другие.' });
+  const fill = I.filter((i) => !i.iconic && ((i.tier === 6 && i.ev > 8000) || (i.tier === 7 && i.usd > 150 && i.usd < 900)));
+  pushCase({ name: 'Золотая лихорадка', group: 'legend', items: [...IC.filter((i) => i.ev < 450000), ...fill], weights: { 6: 5000, 7: 4000 }, inv: true, rtp: 0.9, cap: 'strat', maxRatio: 90, theme: 'gold', emb: 'sun', desc: 'Дорогие Covert и ножи вперемешку с культовыми скинами.' });
+  pushCase({ name: 'Королевский', group: 'legend', items: [...IC.filter((i) => i.ev < 900000), ...fill], weights: { 6: 3000, 7: 6000 }, inv: true, rtp: 0.9, cap: 'strat', maxRatio: 60, theme: 'purple', emb: 'crown', desc: 'Каждый второй предмет — нож или перчатки.' });
+  /* порядок */
+  const order = GROUPS.map((g) => g.id);
+  CASES.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group) || (a.group === 'vanilla' ? b.date - a.date : a.cost - b.cost));
+}
+
+/* ================= вероятности и розыгрыш ================= */
+function rollCase(c) {
+  let r = rfloat(), acc = 0, e = c.entries[c.entries.length - 1];
+  for (const x of c.entries) { acc += x.p; if (r < acc) { e = x; break; } }
+  const it = e.it; const stat = it.st && rint(10) === 0; const wr = rollWear(it);
+  return { e, it, st: stat, w: wr.w, f: wr.f };
+}
+function decoy(c) { const r = rfloat(); let acc = 0; for (const x of c.entries) { acc += x.p; if (r < acc) return x.it; } return c.entries[0].it; }
+
+/* ================= обложка ================= */
+function layoutFor(slug, nw, np) {
+  const r = seeded(slug + ':layout'); const flip = r() > 0.5 ? 1 : -1; const w = []; const p = [];
+  for (let i = 0; i < nw; i++) { const side = i === 0 ? -flip : i === 1 ? flip : 0; w.push({ tx: (side * (6 + r() * 8)).toFixed(1) + '%', ty: (-14 + i * 8 + r() * 10).toFixed(1) + '%', rot: (side * (8 + r() * 14) + (i === 2 ? (r() - 0.5) * 10 : 0)).toFixed(1), s: (0.92 + r() * 0.3 - i * 0.06).toFixed(2), z: 3 - i }); }
+  for (let i = 0; i < np; i++) p.push({ l: (r() * 100).toFixed(1), sz: (2 + r() * 4).toFixed(1), dl: (r() * 6).toFixed(1), du: (5 + r() * 6).toFixed(1), b: r() > 0.5 });
+  return { w, p };
+}
+function coverHTML(c, hero) {
+  const th = c.th; const L = layoutFor(c.slug, c.show.length, hero ? 26 : 7);
+  const mono = (c.name.replace(/case|weapon|operation|кейс/gi, '').replace(/[^A-Za-zА-Яа-я0-9]/g, '').slice(0, 2) || 'VL').toUpperCase();
+  const bg = `radial-gradient(120% 90% at 50% 110%,${th.a}55,transparent 62%),linear-gradient(165deg,${th.c} 0%,#080b10 100%)`;
+  const parts = L.p.map((p) => `<span class="pt" style="left:${p.l}%;width:${p.sz}px;height:${p.sz}px;--d:${p.du}s;--dl:${p.dl}s;--pc:${p.b ? th.b : th.a}"></span>`).join('');
+  const wp = c.show.map((it, i) => { const l = L.w[i]; return `<div class="cwpn" style="z-index:${l.z};--tx:${l.tx};--ty:${l.ty};--r:${l.rot}deg;--s:${l.s};--glow:${esc(it.rc)}88"><img class="cweapon" loading="${hero ? 'eager' : 'lazy'}" decoding="async" referrerpolicy="no-referrer" src="${esc(it.img)}" alt="${esc(it.name)}" onerror="this.style.display='none'"></div>`; }).join('');
+  const crate = c.img || crateSvg(th, c.emb); const fb = crateSvg(th, c.emb);
+  return `<div class="cover ${hero ? 'hero' : ''}" data-theme="${th.id}" style="--ta:${th.a};--tb:${th.b}">
+    <div class="cbg" style="background:${bg}"><div class="cpat" style="background-image:${th.p};background-size:${th.s}"></div>
+    <div class="cglow" style="background:radial-gradient(55% 45% at 50% 52%,${th.a}66,transparent 72%)"></div>
+    <div class="ctop" style="background:radial-gradient(60% 60% at 50% 0%,${th.b}55,transparent 70%);opacity:.5;height:70%;top:-20%"></div>
+    <div class="mono" aria-hidden="true">${esc(mono)}</div></div>
+    ${parts}${wp}
+    <div class="ctag">${esc(GROUP(c.group).tag)}</div>
+    <img class="ccrate" ${hero ? '' : 'loading="lazy"'} decoding="async" referrerpolicy="no-referrer" src="${esc(crate)}" alt="${esc(c.name)}" onerror="this.onerror=null;this.src='${fb.replace(/'/g, '%27')}'">
+    <div class="cname">${esc(c.name)}</div></div>`;
+}
+
+/* ================= маршрутизация и каркас ================= */
+const ICO = {
+  cases: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  farm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1 1.3-1.7 3-1.7s3 .7 3 1.7-1.3 1.6-3 2-3 .9-3 2 1.3 1.7 3 1.7 3-.7 3-1.7"/></svg>',
+  upgrade: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V6M5 12l7-7 7 7"/></svg>',
+  inventory: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/></svg>',
+  contracts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg>',
+  catalog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg>'
+};
+const NAV = [['cases', 'Кейсы'], ['farm', 'Фарм'], ['upgrade', 'Апгрейд'], ['inventory', 'Инвентарь'], ['contracts', 'Контракты'], ['catalog', 'Каталог'], ['profile', 'Профиль']];
+let route = { page: 'cases', arg: '' };
+const ui = { cg: '', cq: '', csort: 'def', cat: { q: '', tier: '', cat: '', sort: 'price', page: 1 }, inv: { sort: 'new', sel: new Set(), tier: '' }, busy: false, ct: new Set() };
+function parseHash() { const h = location.hash.replace(/^#\/?/, '').split('/'); route = { page: h[0] || 'cases', arg: decodeURIComponent(h.slice(1).join('/')) }; }
+function go(p, a) { location.hash = '#/' + p + (a ? '/' + encodeURIComponent(a) : ''); }
+function renderChrome() {
+  $('#nav').innerHTML = NAV.map(([k, l]) => `<a class="${route.page === k || (route.page === 'case' && k === 'cases') ? 'on' : ''}" data-act="goto" data-to="${k}">${ICO[k]}${l}</a>`).join('');
+  renderBal();
+}
+const skeletonCases = (n) => `<div class="grid g-cases">${'<div><div class="sk" style="aspect-ratio:4/5;border-radius:18px"></div><div class="sk" style="height:18px;margin-top:10px;width:60%"></div></div>'.repeat(n)}</div>`;
+let loadMsg = 'Загружаем каталог скинов…';
+function render(keep) {
+  parseHash(); renderChrome(); $('#side').classList.remove('open');
+  const v = $('#view');
+  if (!DATA.ready) { v.innerHTML = loadFailed ? errorHTML() : `<div class="hd"><div><h1>Загрузка</h1><p>${esc(loadMsg)}</p></div></div>${skeletonCases(10)}`; return; }
+  const pages = { cases: pageCases, case: pageCase, farm: pageFarm, upgrade: pageUpgrade, inventory: pageInventory, contracts: pageContracts, catalog: pageCatalog, profile: pageProfile };
+  v.innerHTML = (pages[route.page] || pageCases)();
+  if (!keep) window.scrollTo({ top: 0 });
+  if (route.page === 'case') idleReel();
+  if (route.page === 'upgrade') upInit();
+  if (route.page === 'farm') startFarmTimer();
+  if (route.page === 'profile') startProfileTimer();
+}
+let loadFailed = '';
+const errorHTML = () => `<div class="panel state"><h3>Не удалось загрузить каталог</h3><p>${esc(loadFailed)}. Проверьте интернет: данные берутся с bymykel.github.io и raw.githubusercontent.com (открытая база CSGO-API). Ваш прогресс сохранён и никуда не делся.</p><button class="btn pri" data-act="retry">Повторить</button></div>`;
+
+/* ================= кейсы ================= */
+function caseCard(c) {
+  return `<a class="cwrap" data-act="goto" data-to="case" data-arg="${esc(c.slug)}">${coverHTML(c, false)}<div class="cmeta">${cn(c.cost)}<span style="color:var(--mut);font-size:12px">${c.entries.length} предм.</span></div></a>`;
+}
+function pageCases() {
+  const q = ui.cq.trim().toLowerCase();
+  const counts = {}; CASES.forEach((c) => (counts[c.group] = (counts[c.group] || 0) + 1));
+  const groups = GROUPS.filter((g) => counts[g.id]);
+  const tabs = `<div class="tabs sticky"><span class="tb ${!ui.cg ? 'on' : ''}" data-act="cgroup" data-arg="">Все<em>${CASES.length}</em></span>${groups.map((g) => `<span class="tb ${ui.cg === g.id ? 'on' : ''}" data-act="cgroup" data-arg="${g.id}">${esc(g.name)}<em>${counts[g.id]}</em></span>`).join('')}</div>`;
+  const sortOpt = (v, l) => `<option value="${v}" ${ui.csort === v ? 'selected' : ''}>${l}</option>`;
+  const head = `<div class="hd"><div><h1>Кейсы</h1><p>${CASES.length} кейсов по типам. Цена кейса выводится из стоимости предметов внутри: приз всегда соразмерен цене, а шансы показаны на странице кейса. Токены — виртуальные, 1 токен = 1 ₽ условно.</p></div>
+    <div class="row"><input class="in" style="width:190px" id="caseq" placeholder="Поиск кейса" value="${esc(ui.cq)}"><select class="in" style="width:auto" id="casesort">${sortOpt('def', 'По порядку')}${sortOpt('cheap', 'Дешёвые')}${sortOpt('exp', 'Дорогие')}${sortOpt('name', 'По названию')}</select></div></div>`;
+  const srt = (l) => { l = l.slice(); if (ui.csort === 'cheap') l.sort((a, b) => a.cost - b.cost); else if (ui.csort === 'exp') l.sort((a, b) => b.cost - a.cost); else if (ui.csort === 'name') l.sort((a, b) => a.name.localeCompare(b.name)); return l; };
+  let body = '';
+  if (q || ui.cg) {
+    const list = srt(CASES.filter((c) => (!ui.cg || c.group === ui.cg) && (!q || c.name.toLowerCase().includes(q))));
+    const g = ui.cg ? GROUP(ui.cg) : null;
+    body = (g ? `<p style="color:var(--mut);margin:-4px 0 14px">${esc(g.desc)}</p>` : '') + (list.length ? `<div class="grid g-cases">${list.map(caseCard).join('')}</div>` : '<div class="panel state"><h3>Кейсы не найдены</h3><p>Измените запрос.</p></div>');
+  } else {
+    body = groups.filter((g) => g.id !== 'vanilla').map((g) => { const list = srt(CASES.filter((c) => c.group === g.id)); const shown = list.slice(0, 10);
+      return `<div class="sect"><div class="sect-h"><h2>${esc(g.name)}</h2><p>${esc(g.desc)}</p>${list.length > 10 ? `<button class="btn sm" data-act="cgroup" data-arg="${g.id}">Показать все (${list.length})</button>` : ''}</div><div class="grid g-cases">${shown.map(caseCard).join('')}</div></div>`; }).join('');
+  }
+  const note = (!q && !ui.cg && counts.vanilla) ? `<div class="warn" style="margin-bottom:10px">Настоящие ванильные кейсы CS2 (${counts.vanilla}) вынесены в отдельную вкладку «Ванильные»: они дешёвые, как в оригинале.</div>` : '';
+  const note2 = DATA.estCount ? `<div class="warn">Для ${DATA.estCount} предметов реальной цены нет ни в базе, ни в кэше Skinport — для них показана оценка по редкости. Живые цены подгружаются в фоне и применятся при следующем запуске.</div>` : '';
+  return head + note2 + tabs + note + body;
+}
+function tierBlocks(c) {
+  return c.tierList.map((t) => `<div><div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="font-size:24px;color:${esc(TIERS[t.tier][1])}">${esc(TIERS[t.tier][0])}</h2><b style="color:var(--mut)">Шанс категории: ${pct(t.p)}</b></div>
+  <div class="grid g-items">${t.list.map(({ it, p }) => `<div class="card" style="--rc:${esc(it.rc)}99;cursor:default"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(it.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(it.rc)}">${itemBox(it.img, it.rc, it.name)}</div><div class="w">${esc(it.weapon)}</div><div class="n">${esc(it.pat)}</div><div class="r"><span style="color:var(--br)">${pct(p)}</span>${cn(it.pmin === it.pmax ? it.pmin : it.pmin)}</div></div>`).join('')}</div></div>`).join('');
+}
+const reelCard = (it) => `<div class="rc" style="background:radial-gradient(70% 70% at 50% 40%,${esc(it.rc)}38,transparent 75%),#121820;border-bottom-color:${esc(it.rc)}"><img referrerpolicy="no-referrer" src="${esc(it.img)}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(it.pat)}</span></div>`;
+function pageCase() {
+  const c = CASES.find((x) => x.slug === route.arg);
+  if (!c) return `<div class="panel state"><h3>Кейс не найден</h3><p>Такого кейса нет в загруженных данных.</p><button class="btn pri" data-act="goto" data-to="cases">К списку кейсов</button></div>`;
+  const g = GROUP(c.group);
+  const maxIt = c.entries.reduce((m, e) => (e.it.pmax > m.it.pmax ? e : m), c.entries[0]).it;
+  const btns = [1, 2, 3, 4, 5].map((n) => `<button class="obtn" data-act="openn" data-arg="${esc(c.slug)}|${n}" data-n="${n}" ${st.balance >= c.cost * n ? '' : 'disabled'}><b>${n === 1 ? 'Открыть' : '×' + n}</b><i>${n === 1 ? '×1' : 'быстро'}</i><span>${cn(c.cost * n)}</span></button>`).join('');
+  return `<div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="btn sm" data-act="goto" data-to="cases">← Все кейсы</a><h2 style="font-size:24px">${esc(c.name)}</h2><span class="coins">${COIN}<span id="balCase">${fmt(st.balance)}</span></span></div>
+  <div class="reel" id="reel" style="--ta:${c.th.a}"><div class="track" id="track"></div><div class="mark"></div><div class="fadeL"></div><div class="fadeR"></div></div>
+  <div class="obtns">${btns}</div>
+  <label class="row" style="cursor:pointer;margin-bottom:6px"><input type="checkbox" data-act="fast" ${st.set.fast ? 'checked' : ''}> Быстрое открытие (без прокрутки)</label>
+  ${st.balance >= c.cost ? '' : '<div class="warn">Не хватает токенов. Заработайте в разделе «Фарм» или заберите бонус в профиле.</div>'}
+  <div class="two" style="margin-top:14px"><div>${coverHTML(c, true)}</div>
+  <div class="panel pad" style="display:flex;flex-direction:column;gap:12px"><div><small style="font-weight:700;text-transform:uppercase">${esc(g.name)} · ${esc(c.th.label)}</small><h1 style="font-size:34px">${esc(c.name)}</h1>${c.desc ? `<p style="color:var(--mut);margin:6px 0 0">${esc(c.desc)}</p>` : ''}</div>
+  <div class="kv"><div><small>Цена открытия</small><b style="font-size:22px">${cn(c.cost)}</b></div><div><small>Ваш баланс</small><b style="font-size:22px">${cn(st.balance)}</b></div><div><small>Предметов внутри</small><b style="color:#fff">${c.entries.length}</b></div><div><small>Самый дорогой</small><b style="color:#fff;font-size:13px">${esc(maxIt.pat)} · ${fmt(maxIt.pmax)}</b></div></div>
+  <details style="font-size:12.5px"><summary style="cursor:pointer;font-weight:700;color:#cbd5e1">Правила и шансы</summary><ul style="padding-left:18px;color:var(--mut)"><li>Шансы категорий и предметов указаны ниже. ${c.group === 'vanilla' ? 'Для ванильных кейсов используются шансы Valve: Армейское 79,92%, Запрещённое 15,98%, Засекреченное 3,20%, Тайное 0,64%, редкий особый 0,26%.' : 'Если категории нет в кейсе, шансы остальных пересчитываются.'}</li><li>Цена кейса = ожидаемая стоимость выпадения ÷ ${c.rtp.toFixed(2)}: в среднем возврат около ${Math.round(c.rtp * 100)}%, кейс слегка «спускает», но крупные призы реальны.</li><li>Износ определяется случайным float скина: прямо с завода, немного поношенное или поношенное. От износа зависит цена.</li><li>StatTrak™ — 1 из 10 (для скинов, где он существует), цена ×${ST_MULT}.</li><li>×2…×5 открывают кейсы сразу, без прокрутки, и показывают итог.</li></ul></details></div></div>
+  <div class="tiers">${tierBlocks(c)}</div>`;
+}
+function idleReel() { const c = CASES.find((x) => x.slug === route.arg); const t = $('#track'); if (!c || !t) return; const s = c.entries; t.innerHTML = Array.from({ length: 28 }, (_, i) => reelCard(s[(i * 7) % s.length].it)).join(''); }
+const imgBox = (img, rc, name) => `<div style="aspect-ratio:4/3;display:grid;place-items:center;border-radius:16px;background:radial-gradient(65% 65% at 50% 45%,${esc(rc)}44,transparent 75%),#121820;border-bottom:3px solid ${esc(rc)}"><img referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:contain;padding:10px" src="${esc(img)}" alt="${esc(name)}" onerror="this.style.visibility='hidden'"></div>`;
+const instTitle = (i) => (i.st ? 'StatTrak™ ' : '') + i.name;
+
+function bumpCase(c, inst) {
+  st.stats.cases++; qEvent('case', 1); if (c.cost >= 2000) qEvent('caseX', 1); if (inst.p >= c.cost * 3) qEvent('big', 1);
+  const b = st.stats.best; if (!b || inst.p > b.p) st.stats.best = { name: inst.name, img: inst.img, rc: inst.rc, p: inst.p };
+}
+function openCase(slug) {
+  const c = CASES.find((x) => x.slug === slug); if (!c || ui.busy) return;
+  if (st.balance < c.cost) { toast('Недостаточно токенов'); return; }
+  const d = rollCase(c); const inst = makeInst(d.it, d.w, d.st, d.f, 'case:' + c.slug);
+  st.inv.unshift(inst); addOp(`Кейс «${c.name}»: ${instTitle(inst)}`, -c.cost); bumpCase(c, inst); renderBal();
+  const fast = st.set.fast; const track = $('#track'), wrap = $('#reel');
+  const showResult = () => {
+    ui.busy = false; sWin();
+    modal(`<div class="res"><h2 style="margin-bottom:12px">Вам выпало</h2>${imgBox(inst.img, inst.rc, inst.name)}<div style="font:700 24px Rajdhani,system-ui;color:#fff;margin-top:12px">${esc(instTitle(inst))}</div><div style="color:${esc(inst.rc)};font-weight:700">${esc(inst.rn)} · ${esc(wearName(inst.w))}</div>
+    <div style="margin-top:8px;font-size:20px">${cn(inst.p)} <small>(цена кейса ${fmt(c.cost)})</small></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn gold" data-act="sell1" data-arg="${esc(inst.id)}">Продать за ${fmt(inst.p)}</button><button class="btn" data-act="goto" data-to="inventory">В инвентарь</button><button class="btn pri" data-act="again" data-arg="${esc(c.slug)}">Открыть ещё</button></div></div>`);
+    refreshOpen(c);
+  };
+  if (fast || !track || !wrap) { showResult(); return; }
+  ui.busy = true; const WIN = 49;
+  const reel = Array.from({ length: 60 }, (_, i) => (i === WIN ? d.it : decoy(c)));
+  track.innerHTML = reel.map(reelCard).join('');
+  const target = WIN * 152 + 72 - wrap.clientWidth / 2 + (Math.random() - 0.5) * 100;
+  track.style.transition = 'none'; track.style.transform = 'translateX(0)'; void track.offsetWidth;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  track.style.transition = reduce ? 'none' : 'transform 6.5s cubic-bezier(.08,.6,.12,1)'; track.style.transform = `translateX(${-target}px)`;
+  document.querySelectorAll('.obtn').forEach((b) => { b.disabled = true; });
+  let k = -1; const tk = setInterval(() => { const m = track.getBoundingClientRect(), r = wrap.getBoundingClientRect(); const idx = Math.floor((r.left + r.width / 2 - m.left) / 152); if (idx !== k) { k = idx; sTick(); } }, 40);
+  setTimeout(() => { clearInterval(tk); showResult(); }, reduce ? 100 : 6900);
+}
+function refreshOpen(c) { document.querySelectorAll('.obtn').forEach((b) => { b.disabled = st.balance < c.cost * +b.dataset.n; }); const e = $('#balCase'); if (e) e.textContent = fmt(st.balance); }
+function openMany(slug, n) {
+  const c = CASES.find((x) => x.slug === slug); if (!c || ui.busy) return;
+  if (st.balance < c.cost * n) { toast('Недостаточно токенов'); return; }
+  const got = [];
+  for (let i = 0; i < n; i++) { const d = rollCase(c); const inst = makeInst(d.it, d.w, d.st, d.f, 'case:' + c.slug); st.inv.unshift(inst); got.push(inst); st.balance -= c.cost; bumpCase(c, inst); }
+  const sum = got.reduce((s, x) => s + x.p, 0); st.ops.unshift({ t: Date.now(), d: `Кейс «${c.name}» ×${n}`, delta: -c.cost * n, bal: st.balance }); save(); renderBal(); sWin();
+  modal(`<div class="res"><h2>Результат ×${n}</h2><p style="margin:4px 0 10px;color:var(--mut)">Потрачено ${fmt(c.cost * n)} · общая стоимость предметов ${fmt(sum)}</p><div class="grid g-sm" style="text-align:left">${got.map((i) => `<div class="card" style="--rc:${esc(i.rc)}99;cursor:default"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(i.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(i.rc)}">${itemBox(i.img, i.rc, i.name)}</div><div class="n">${esc(i.name.split(' | ')[1] || i.name)}</div><div class="r"><span style="color:${esc(i.rc)}">${esc(WEARS[i.w].s)}</span>${cn(i.p)}</div></div>`).join('')}</div>
+  <div class="row" style="justify-content:center;margin-top:16px"><button class="btn gold" data-act="sellids" data-arg="${got.map((i) => i.id).join(',')}">Продать всё за ${fmt(sum)}</button><button class="btn pri" data-act="again" data-arg="${esc(c.slug)}">Ещё раз</button></div></div>`, true);
+  refreshOpen(c);
+}
+
+/* ================= продажа ================= */
+function sellIds(ids, silent) {
+  const set = new Set(ids); const items = st.inv.filter((i) => set.has(i.id)); if (!items.length) return 0;
+  const sum = items.reduce((s, i) => s + i.p, 0);
+  st.inv = st.inv.filter((i) => !set.has(i.id)); ui.inv.sel = new Set([...ui.inv.sel].filter((x) => !set.has(x)));
+  st.stats.sold += items.length; st.stats.soldSum += sum; addOp(items.length === 1 ? `Продажа: ${instTitle(items[0])}` : `Продажа ${items.length} предметов`, sum);
+  qEvent('sell', items.length); qEvent('sellsum', sum); sSmall(); if (!silent) toast(`Продано: +${fmt(sum)} токенов`);
+  return sum;
+}
+function sellConfirm(ids) {
+  const items = st.inv.filter((i) => ids.includes(i.id)); const sum = items.reduce((s, i) => s + i.p, 0);
+  if ((items.some((i) => i.p >= 100000 || i.iconic) || sum >= 300000) && !confirm(`Продать ${items.length} предм. за ${fmt(sum)} токенов? Это ценный предмет.`)) return false;
+  sellIds(ids); return true;
+}
+
+/* ================= инвентарь ================= */
+function invCard(i) {
+  const sel = ui.inv.sel.has(i.id); const parts = i.name.split(' | ');
+  return `<div class="card ${sel ? 'sel' : ''}" style="--rc:${esc(i.rc)}99" data-act="invmodal" data-arg="${esc(i.id)}"><span class="ck" data-act="pick" data-arg="${esc(i.id)}">${sel ? '✓' : ''}</span><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(i.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(i.rc)}">${itemBox(i.img, i.rc, i.name)}</div><div class="w">${esc(parts[0])}</div><div class="n">${esc(parts[1] || i.name)}</div><div class="r"><span style="color:${esc(i.rc)}">${esc(WEARS[i.w].s)}${i.st ? ' <span class="chip st">ST™</span>' : ''}</span>${cn(i.p)}</div></div>`;
+}
+function sortedInv() {
+  let list = [...st.inv]; const s = ui.inv.sort;
+  if (s === 'old') list.reverse(); else if (s === 'price') list.sort((a, b) => b.p - a.p); else if (s === 'cheap') list.sort((a, b) => a.p - b.p); else if (s === 'name') list.sort((a, b) => a.name.localeCompare(b.name)); else if (s === 'rar') list.sort((a, b) => b.tier - a.tier || b.p - a.p);
+  if (ui.inv.tier) list = list.filter((i) => String(i.tier) === ui.inv.tier);
+  return list;
+}
+function invBar() {
+  const sel = st.inv.filter((i) => ui.inv.sel.has(i.id)); const sum = sel.reduce((s, i) => s + i.p, 0);
+  return `<div class="selbar"><b style="color:#fff">Выбрано: ${sel.length}</b><span>на ${cn(sum)}</span><span style="flex:1"></span><button class="btn gold sm" data-act="sellsel" ${sel.length ? '' : 'disabled'}>Продать выбранные</button><button class="btn sm" data-act="selall">Выбрать все</button><button class="btn sm" data-act="selnone" ${sel.length ? '' : 'disabled'}>Снять</button></div>`;
+}
+function pageInventory() {
+  const list = sortedInv(); const total = st.inv.reduce((s, i) => s + i.p, 0);
+  const so = (v, l) => `<option value="${v}" ${ui.inv.sort === v ? 'selected' : ''}>${l}</option>`;
+  const tiers = Object.keys(TIERS).filter((t) => st.inv.some((i) => String(i.tier) === t));
+  return `<div class="hd"><div><h1>Инвентарь</h1><p>Предметов: ${st.inv.length} · общая стоимость ${cn(total)}. Отметьте предметы галочкой в углу карточки и продайте сразу несколько — или нажмите на карточку для подробностей.</p></div>
+  <div class="row"><select class="in" style="width:auto" id="invtier"><option value="">Все редкости</option>${tiers.map((t) => `<option value="${t}" ${ui.inv.tier === t ? 'selected' : ''}>${esc(TIERS[t][0])}</option>`).join('')}</select><select class="in" style="width:auto" id="invsort">${so('new', 'Сначала новые')}${so('old', 'Сначала старые')}${so('price', 'Сначала дорогие')}${so('cheap', 'Сначала дешёвые')}${so('rar', 'По редкости')}${so('name', 'По названию')}</select></div></div>
+  ${st.inv.length ? invBar() : ''}
+  ${list.length ? `<div class="grid g-items">${list.map(invCard).join('')}</div>` : '<div class="panel state"><h3>Инвентарь пуст</h3><p>Откройте кейс или выиграйте предмет в апгрейде.</p><button class="btn pri" data-act="goto" data-to="cases">К кейсам</button></div>'}`;
+}
+function invModal(id) {
+  const i = st.inv.find((x) => x.id === id); if (!i) return;
+  modal(`<h2 style="margin-bottom:10px">${esc(instTitle(i))}</h2>${imgBox(i.img, i.rc, i.name)}<div class="kv"><div><small>Редкость</small><b style="color:${esc(i.rc)}">${esc(i.rn)}</b></div><div><small>Износ</small><b style="color:#fff">${esc(wearName(i.w))}</b></div><div><small>Цена продажи</small><b>${cn(i.p)}</b></div><div><small>Получен</small><b style="color:#fff;font-size:13px">${new Date(i.ts).toLocaleString('ru-RU')}</b></div></div>
+  <div class="row" style="margin-top:14px"><button class="btn gold" data-act="sell1" data-arg="${esc(i.id)}">Продать за ${fmt(i.p)}</button><button class="btn" data-act="toupg" data-arg="${esc(i.id)}">В апгрейд</button><button class="btn" data-act="close">Закрыть</button></div>`);
+}
+
+/* ================= каталог ================= */
+function pageCatalog() {
+  const f = ui.cat; const q = f.q.trim().toLowerCase();
+  let list = DATA.items.filter((s) => (!q || s.name.toLowerCase().includes(q)) && (!f.tier || String(s.tier) === f.tier) && (!f.cat || s.cat === f.cat));
+  list = list.slice().sort((a, b) => (f.sort === 'name' ? a.name.localeCompare(b.name) : f.sort === 'cheap' ? a.ev - b.ev : b.ev - a.ev));
+  const pages = Math.max(1, Math.ceil(list.length / 24)); const pg = Math.min(f.page, pages); const slice = list.slice((pg - 1) * 24, pg * 24);
+  const op = (v, cur, l) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${l}</option>`;
+  const cards = slice.map((s) => `<div class="card" style="--rc:${esc(s.rc)}99" data-act="skin" data-arg="${esc(s.key)}"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(s.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(s.rc)}">${itemBox(s.img, s.rc, s.name)}</div><div class="w">${esc(s.weapon)}</div><div class="n">${esc(s.pat)}</div><div class="r"><span style="color:${esc(s.rc)}">${esc(s.rn)}</span><span class="coins">${s.est ? '≈' : ''}${fmt(s.pmin)}${s.pmax > s.pmin ? '+' : ''}</span></div></div>`).join('');
+  const pager = pages > 1 ? `<div class="pg"><button class="btn" data-act="page" data-arg="${pg - 1}" ${pg <= 1 ? 'disabled' : ''}>Назад</button><span style="align-self:center">Страница ${pg} из ${pages}</span><button class="btn" data-act="page" data-arg="${pg + 1}" ${pg >= pages ? 'disabled' : ''}>Далее</button></div>` : '';
+  return `<div class="hd"><div><h1>Каталог скинов</h1><p>Реальные предметы CS2: названия и изображения из CSGO-API. Найдено: ${fmt(list.length)}. Цена «от» — самый дешёвый доступный износ. Знак ≈ — оценочная цена.</p></div></div>
+  <div class="row" style="margin-bottom:16px"><input class="in" style="width:240px" id="cq" placeholder="Поиск: AK-47, Redline…" value="${esc(f.q)}"><select class="in" style="width:auto" id="ctier"><option value="">Все редкости</option>${Object.keys(TIERS).map((t) => op(t, f.tier, TIERS[t][0])).join('')}</select><select class="in" style="width:auto" id="ccat">${op('', f.cat, 'Все типы')}${op('w', f.cat, 'Оружие')}${op('k', f.cat, 'Ножи')}${op('g', f.cat, 'Перчатки')}</select><select class="in" style="width:auto" id="csortc">${op('price', f.sort, 'Дорогие сначала')}${op('cheap', f.sort, 'Дешёвые сначала')}${op('name', f.sort, 'По названию')}</select></div>
+  ${list.length ? `<div class="grid g-items">${cards}</div>${pager}` : '<div class="panel state"><h3>Ничего не найдено</h3><p>Измените запрос.</p></div>'}`;
+}
+function skinModal(key) {
+  const s = DATA.byKey.get(key); if (!s) return;
+  const inCases = CASES.filter((c) => c.entries.some((e) => e.it === s)).slice(0, 12);
+  modal(`<h2 style="margin-bottom:10px">${esc(s.name)}</h2>${imgBox(s.img, s.rc, s.name)}<div style="margin-top:10px"><span class="chip" style="color:${esc(s.rc)}">${esc(s.rn)}</span>${s.st ? '<span class="chip st">StatTrak™</span>' : ''}${s.iconic ? `<span class="chip" style="color:var(--gold)">Культовый ×${s.mk}</span>` : ''}</div>
+  <table style="margin-top:10px"><tr><th>Износ</th><th>Шанс при выпадении</th><th>Цена</th></tr>${WEARS.map((w, i) => (s.prices[i] ? `<tr><td>${esc(w.n)}</td><td>${pct(s.pw[i])}</td><td>${cn(s.prices[i])}</td></tr>` : '')).join('')}</table>
+  <p style="color:var(--mut);font-size:12px">${s.est ? 'Цена оценочная (реальной нет в базе). ' : s.src === 'live' ? 'Цена из Skinport (USD→токены). ' : 'Цена из базы реальных цен. '}Токены = $ × ${COIN_PER_USD}${s.iconic ? ' × наценка ' + s.mk : ''}.</p>
+  ${s.cols.length ? `<p><small>Коллекции:</small> ${s.cols.map(esc).join(', ')}</p>` : ''}${inCases.length ? `<p><small>Есть в кейсах:</small> ${inCases.map((c) => `<a class="chip" style="cursor:pointer" data-act="goto" data-to="case" data-arg="${esc(c.slug)}">${esc(c.name)}</a>`).join('')}</p>` : ''}
+  <div class="row" style="margin-top:14px"><button class="btn pri" data-act="close">Закрыть</button></div>`);
+}
+
+/* ================= фарм: кликер ================= */
+let spinning = false;
+function floatText(txt, x, y) {
+  const e = document.createElement('div'); e.className = 'fl'; e.textContent = txt; e.style.left = (x - 14 + (Math.random() * 40 - 20)) + 'px'; e.style.top = (y - 20) + 'px';
+  document.body.appendChild(e); setTimeout(() => e.remove(), 950);
+}
+function farmUpdate() { const e = $('#farmSum'); if (e) e.innerHTML = cn(st.stats.farmSum); const k = $('#farmClicks'); if (k) k.textContent = fmt(st.stats.clicks); }
+function tap(x, y) {
+  addCoins(CLICK_REWARD); st.stats.clicks++; st.stats.farmSum += CLICK_REWARD; qEvent('clk', 1); qEvent('farm', CLICK_REWARD);
+  floatText('+' + CLICK_REWARD, x, y); sCoin(); schedSave(); farmUpdate();
+}
+function holdTick(x, y) { addCoins(HOLD_REWARD); st.stats.farmSum += HOLD_REWARD; qEvent('farm', HOLD_REWARD); floatText('+' + HOLD_REWARD, x, y); sCoin(); schedSave(); farmUpdate(); }
+function holdStart(e) {
+  const b = $('#clk'); if (!b) return; stopHold();
+  const r = b.getBoundingClientRect(); const x = e.clientX || r.left + r.width / 2, y = e.clientY || r.top + r.height / 2;
+  b.classList.add('held'); tap(x, y);
+  holdTo = setTimeout(() => { holdIv = setInterval(() => holdTick(x, y), HOLD_EVERY); }, 380);
+}
+
+/* ================= фарм: угадай скин ================= */
+const QREW = [300, 350, 400, 450, 600, 900, 1000, 1100, 1200, 1500, 2500, 3000, 3500, 4000, 6000].map((x) => Math.round(x * 1.5));   // +50% к награде
+const QCD = 10 * 60000;   // перепрохождение уровня — раз в 10 минут, без штрафа к награде
+const qLast = () => (st.quiz.last = st.quiz.last || {});
+const qLeft = (l) => Math.max(0, (qLast()[l] || 0) + QCD - Date.now());
+const qCur = () => st.quiz.done.findIndex((x) => !x);
+const qPlayable = (l) => (qCur() === l) || (st.quiz.done[l] && qLeft(l) === 0);
+const QDIFF = (l) => (l < 5 ? 'easy' : l < 10 ? 'mid' : 'hard');
+const QDN = { easy: 'Лёгкий', mid: 'Средний', hard: 'Сложный' };
+const Q_EASY = ['ak-47 | redline', 'awp | asiimov', 'ak-47 | asiimov', 'm4a4 | asiimov', 'awp | dragon lore', 'desert eagle | blaze', 'm4a4 | howl', 'ak-47 | fire serpent', 'ak-47 | vulcan', 'ak-47 | neon rider', 'ak-47 | bloodsport', 'm4a1-s | hyper beast', 'awp | hyper beast', 'awp | neo-noir', 'm4a1-s | cyrex', 'usp-s | kill confirmed', 'usp-s | orion', 'glock-18 | fade', 'glock-18 | water elemental', 'ak-47 | case hardened', 'awp | lightning strike', 'awp | medusa', 'desert eagle | printstream', 'ak-47 | fuel injector', 'ak-47 | wild lotus', 'usp-s | cortex', 'p90 | asiimov', 'm4a4 | neo-noir', 'ak-47 | the empress', 'awp | gungnir', 'awp | containment breach', 'm4a1-s | printstream', 'ak-47 | head shot', 'm4a4 | desolate space', 'ak-47 | slate', 'ak-47 | hydroponic', 'awp | wildfire', 'awp | graphite', 'usp-s | neo-noir', 'karambit | fade', 'butterfly knife | fade', 'm9 bayonet | fade', 'sport gloves | vice'];
+const Q_MID = ['ak-47 | phantom disruptor', 'm4a4 | buzz kill', 'awp | atheris', 'awp | pit viper', 'glock-18 | vogue', 'p250 | muertos', 'p250 | asiimov', 'mp9 | hot rod', 'mp7 | nemesis', 'ump-45 | primal saber', 'famas | roll cage', 'galil ar | eco', 'sg 553 | cyrex', 'aug | chameleon', 'five-seven | monkey business', 'tec-9 | fuel injector', 'cz75-auto | victoria', 'p2000 | fire elemental', 'nova | hyper beast', 'xm1014 | tranquility', 'mac-10 | neon rider', 'ssg 08 | dragonfire', 'r8 revolver | fade', 'desert eagle | code red', 'm4a4 | the emperor', 'p90 | death by kitty', 'm4a1-s | decimator', 'aug | akihabara accept', 'awp | oni taiji', 'ak-47 | aquamarine revenge', 'usp-s | caiman', 'glock-18 | bunsen burner', 'mp9 | rose iron', 'p250 | see ya later', 'five-seven | hyper beast', 'galil ar | chatterbox', 'famas | mecha industries', 'ump-45 | momentum', 'p90 | trigon', 'm4a4 | bullet rain', 'ak-47 | frontside misty', 'awp | electric hive', 'ak-47 | jaguar', 'usp-s | stainless', 'cz75-auto | xiangliu', 'mac-10 | heat', 'ssg 08 | blood in the water', 'mp7 | bloodsport', 'negev | loudmouth', 'sawed-off | the kraken'];
+let QP = null;
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rint(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function quizPools() {
+  if (QP) return QP; const get = (arr) => arr.map((k) => DATA.byKey.get(k)).filter(Boolean);
+  let easy = get(Q_EASY), mid = get(Q_MID); const used = new Set([...easy, ...mid]);
+  const rest = () => DATA.items.filter((i) => i.cat === 'w' && !used.has(i));
+  if (easy.length < 12) { const ex = rest().filter((i) => i.tier >= 5).sort((a, b) => b.ev - a.ev).slice(0, 14 - easy.length); easy = easy.concat(ex); ex.forEach((x) => used.add(x)); }
+  if (mid.length < 12) { const ex = shuffle(rest().filter((i) => i.tier >= 3 && i.tier <= 5)).slice(0, 14 - mid.length); mid = mid.concat(ex); ex.forEach((x) => used.add(x)); }
+  let hard = rest().filter((i) => i.tier >= 2); if (hard.length < 12) hard = rest();
+  QP = { easy, mid, hard }; return QP;
+}
+let qz = null;
+function makeQuestion(level) {
+  const d = QDIFF(level); const pool = quizPools()[d]; let t;
+  for (let k = 0; k < 30; k++) { t = pool[rint(pool.length)]; if (!qz.seen.has(t.key)) break; }
+  qz.seen.add(t.key);
+  const same = shuffle(DATA.items.filter((i) => i.cat === t.cat && i.weapon === t.weapon && i.key !== t.key && i.img !== t.img));
+  const others = shuffle(pool.filter((i) => i.key !== t.key && i.name !== t.name));
+  const cand = d === 'easy' ? [...others, ...same] : [...same.slice(0, 2), ...others, ...same.slice(2)];
+  const opts = [t]; for (const c of cand) { if (opts.length >= 4) break; if (!opts.some((o) => o.name === c.name)) opts.push(c); }
+  return { t, opts: shuffle(opts) };
+}
+function quizStart(level) {
+  const cur = qCur(); let lv = level != null ? level : cur;
+  if (lv < 0) lv = st.quiz.done.findIndex((x, i) => qPlayable(i));
+  if (lv < 0 || !qPlayable(lv)) { toast('Уровни на перезарядке — попробуйте позже'); return; }
+  qz = { level: lv, seen: new Set(), locked: false, gained: 0 }; qz.q = makeQuestion(lv); renderQuiz();
+}
+function quizRewardFor(l) { return QREW[l]; }
+function renderQuiz(msg) {
+  const L = qz.level, q = qz.q, d = QDIFF(L);
+  modal(`<div class="quiz" style="margin:-20px;padding:20px"><div class="row" style="justify-content:space-between"><span><span class="tag ${d}">${QDN[d]}</span> <b style="color:#fff;margin-left:6px">Уровень ${L + 1} из 15</b></span><span>${cn(quizRewardFor(L))}</span></div>
+  <h3 style="margin-top:12px;font-size:22px;text-align:center">Как называется этот скин?</h3>
+  <div class="qimg"><img referrerpolicy="no-referrer" src="${esc(q.t.img)}" alt="Скин" onerror="this.style.visibility='hidden'"></div>
+  <div class="opts">${q.opts.map((o, i) => `<button class="opt" data-act="ans" data-arg="${i}">${esc(o.name.replace(/^★\s*/, '★ '))}</button>`).join('')}</div>
+  <div class="dots">${Array.from({ length: 15 }, (_, i) => `<i class="${st.quiz.done[i] ? 'd' : i === L ? 'c' : ''}" style="width:${100 / 15 - 1}%"></i>`).join('')}</div>${msg || ''}
+  <div style="text-align:center;margin-top:10px"><button class="btn sm" data-act="close">Закрыть</button></div></div>`);
+}
+function quizAnswer(i) {
+  if (!qz || qz.locked) return; qz.locked = true; const q = qz.q; const ok = q.opts[i] === q.t; const btns = document.querySelectorAll('.opt');
+  btns.forEach((b, k) => { b.disabled = true; if (q.opts[k] === q.t) b.classList.add('ok'); else if (k === i) b.classList.add('bad'); });
+  const L = qz.level;
+  if (ok) {
+    const rew = quizRewardFor(L); addCoins(rew); st.quiz.done[L] = true; qLast()[L] = Date.now(); st.stats.quizOk++; st.stats.farmSum += rew; qEvent('quiz', 1); qEvent('farm', rew); save(); sSmall(); qz.gained += rew;
+    quizTimer = setTimeout(() => { quizTimer = null; if (L >= 14 || !qPlayable(L + 1)) quizFinish(); else { qz.level = L + 1; qz.q = makeQuestion(L + 1); qz.locked = false; renderQuiz(`<p style="text-align:center;color:var(--grn);margin:8px 0 0">Верно! +${fmt(rew)} токенов</p>`); } }, 900);
+    const fe = $('.qimg'); if (fe) { const r = fe.getBoundingClientRect(); floatText('+' + fmt(rew), r.left + r.width / 2, r.top + 30); }
+  } else {
+    sLose();
+    quizTimer = setTimeout(() => { quizTimer = null; const md = $('#md'); if (!md) return; md.innerHTML = `<div class="res"><div class="big lose">Неверно</div><p>Это был <b style="color:#fff">${esc(q.t.name)}</b>.</p>${qz.gained ? `<p style="color:var(--gold)">За серию получено: ${fmt(qz.gained)} токенов</p>` : ''}<div class="row" style="justify-content:center"><button class="btn pri" data-act="qretry">Попробовать уровень ${L + 1} снова</button><button class="btn" data-act="close">Закрыть</button></div></div>`; }, 1100);
+  }
+}
+function quizFinish() {
+  modal(`<div class="res"><div class="big win">Серия закончена!</div><p>За эту серию: ${cn(qz.gained)}</p><p style="color:var(--mut)">Пройденные уровни можно перепроходить через 10 минут — с полной наградой, без штрафов.</p><button class="btn pri" data-act="close">Отлично</button></div>`); sWin(); renderFarmIfOpen();
+}
+function renderFarmIfOpen() { if (route.page === 'farm') { const v = $('#view'); v.innerHTML = pageFarm(); } }
+function pageFarm() {
+  const done = st.quiz.done; const cur = qCur(); const nDone = done.filter(Boolean).length; const anyReady = done.some((d, i) => qPlayable(i));
+  const lv = Array.from({ length: 15 }, (_, i) => { const d = QDIFF(i); const ok = qPlayable(i); const cd = done[i] && !ok;
+    return `<div class="lvb ${d} ${done[i] ? 'done' : i === cur ? 'cur' : ''}" ${ok ? `data-act="qlevel" data-arg="${i}"` : 'style="opacity:.5;cursor:default"'}>${i + 1}<small ${cd ? `data-cd="${i}"` : ''}>${cd ? hms(qLeft(i)).slice(3) : fmt(QREW[i])}</small></div>`; }).join('');
+  return `<div class="hd"><div><h1>Фарм токенов</h1><p>Два способа заработать: кликер и викторина «Угадай скин». Заработанные токены можно тратить на кейсы и апгрейды.</p></div></div>
+  <div class="farm"><div class="panel pad"><h2 style="font-size:24px">Кликер</h2><p style="color:var(--mut);margin:4px 0 0">Нажатие — <b style="color:var(--gold)">+${CLICK_REWARD}</b> токенов. Удерживайте кнопку — каждые доли секунды капает по <b style="color:var(--gold)">+${HOLD_REWARD}</b>. Работает и пробел.</p>
+  <div class="clk-wrap"><button class="clk" id="clk" aria-label="Кликер токенов"><svg viewBox="0 0 24 24" fill="none" stroke="#7a4a00" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6" stroke-opacity=".6"/><path d="M12 7.5v9M9.8 9.6c0-.9 1-1.5 2.2-1.5s2.2.6 2.2 1.5-1 1.4-2.2 1.8-2.2.8-2.2 1.7 1 1.5 2.2 1.5 2.2-.6 2.2-1.5"/></svg></button>
+  <div class="row" style="gap:22px"><div class="stat">Кликов<b id="farmClicks">${fmt(st.stats.clicks)}</b></div><div class="stat">Заработано в фарме<b id="farmSum">${cn(st.stats.farmSum)}</b></div></div></div></div>
+  <div class="panel pad"><h2 style="font-size:24px">Угадай скин</h2><p style="color:var(--mut);margin:4px 0 12px">15 уровней: 5 лёгких (популярные скины), 5 средних и 5 сложных (редкие). На каждом — картинка скина и 4 варианта названия. Верный ответ приносит токены (+50%) и ведёт дальше. Пройденные уровни можно перепроходить каждые 10 минут с полной наградой.</p>
+  <div class="lv">${lv}</div><div class="row" style="margin-top:14px;justify-content:space-between"><span style="color:var(--mut)">Пройдено: ${nDone} из 15</span><button class="btn pri" data-act="qstart" ${anyReady ? '' : 'disabled'}>${cur < 0 ? 'Перепройти' : nDone ? 'Продолжить с уровня ' + (cur + 1) : 'Начать'}</button></div></div></div>`;
+}
+
+/* ================= апгрейд (перенесён из вашей игры) ================= */
+let spinFrozen = null;
+let upSel = new Set(), upTarget = null, stakeBal = 0, rot = 0, upTab = 'mine', upLimit = 40, UPALL = null;
+const upf = { q: '', min: '', max: '', cat: '', tier: '', sort: 'asc' };
+function upAll() { if (!UPALL) { UPALL = []; for (const it of DATA.items) for (let w = 0; w < 3; w++) if (it.prices[w] > 0) UPALL.push({ it, w, price: it.prices[w], key: it.key + '|' + w }); UPALL.sort((a, b) => a.price - b.price); } return UPALL; }
+function nearest(p, lo, hi, n = 1) { return upAll().filter((x) => x.price >= lo && x.price <= hi).sort((a, b) => Math.abs(a.price - p) - Math.abs(b.price - p)).slice(0, n); }
+const tgtPrice = () => (upTarget ? DATA.byKey.get(upTarget.key).prices[upTarget.w] : 0);
+function stake() { let s = stakeBal; st.inv.forEach((i) => { if (upSel.has(i.id)) s += i.p; }); return s; }
+function chanceNow() { const S = stake(); if (!upTarget || S <= 0) return 0; return Math.min(0.95, S / tgtPrice() * EDGE); }
+const ARROWS = {
+  tri: '<polygon points="200,34 189,66 200,58 211,66"/>', stick: '<rect x="197" y="30" width="6" height="48" rx="3"/>',
+  dart: '<path d="M200 26L206 46L201 44V68L208 78L200 72L192 78L199 68V44L194 46Z"/>', down: '<polygon points="186,34 214,34 200,64"/>', diamond: '<path d="M200 28L211 52L200 76L189 52Z"/>'
+};
+const ARROW_ATTR = 'fill="#eafffb" stroke="#04201b" stroke-width="1.5" stroke-linejoin="round"';
+const arrowSvg = (k) => `<svg viewBox="172 22 56 62" width="34" height="38"><g ${ARROW_ATTR}>${ARROWS[k]}</g></svg>`;
+function applyArrow() { const g = $('#arrow'); if (g) g.innerHTML = `<g ${ARROW_ATTR}>${ARROWS[st.set.arrow] || ARROWS.tri}</g>`; }
+function arcPath(r, a1, a2) { const P = (a) => [200 + r * Math.sin(a * Math.PI / 180), 200 - r * Math.cos(a * Math.PI / 180)], [x1, y1] = P(a1), [x2, y2] = P(a2); return `M${x1.toFixed(2)} ${y1.toFixed(2)}A${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`; }
+function setArc(ch) {
+  const c = Math.min(0.999, Math.max(0, ch)), h = c * 180; const a = $('#arc'), a2 = $('#arc2'); if (!a) return;
+  if (c <= 0) { a.setAttribute('d', ''); a2.setAttribute('d', ''); return; }
+  a.setAttribute('d', arcPath(150, 180 - h, 180 + h)); a2.setAttribute('d', arcPath(190, 180 - h, 180 + h));
+}
+function pageUpgrade() {
+  return `<div class="hd"><div><h1>Апгрейд</h1><p>Поставьте свои предметы и/или токены, выберите дорогую цель — и крутите колесо. Чем выше цель относительно ставки, тем ниже шанс (максимум 95%).</p></div></div>
+  <div class="up-top"><div>
+   <div class="tools"><button class="tool" data-act="upset" aria-label="Настройки" title="Настройки">⚙</button><button class="tool" id="tSound" data-act="upsound" title="Звук">♪</button><button class="tool" id="tFast" data-act="upfast" title="Быстрая прокрутка">»</button></div>
+   <div class="wheelbox"><svg viewBox="0 0 400 400"><defs><linearGradient id="ringg" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="345"><stop offset="0" stop-color="#7af5de"/><stop offset=".55" stop-color="#2de6c6"/><stop offset="1" stop-color="#0e8f7b"/></linearGradient></defs>
+    <g id="ticks" stroke="rgba(255,255,255,.14)" stroke-width="2"></g><circle cx="200" cy="200" r="150" fill="none" stroke="#1b2430" stroke-width="24"/><circle cx="200" cy="200" r="190" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+    <path id="arc2" d="" fill="none" stroke="url(#ringg)" stroke-width="2.5" opacity=".85"/><path id="arc" d="" fill="none" stroke="url(#ringg)" stroke-width="24"/><circle cx="200" cy="200" r="122" fill="#10161e" stroke="rgba(255,255,255,.08)" stroke-width="2"/>
+    <text x="200" y="100" text-anchor="middle" font-size="11" fill="#7d8ba0">100%</text><text x="104" y="204" text-anchor="middle" font-size="10" fill="#7d8ba0">50%</text><text x="296" y="204" text-anchor="middle" font-size="10" fill="#7d8ba0">50%</text><text x="200" y="296" text-anchor="middle" font-size="10" fill="#7d8ba0">0%</text>
+    <g class="arrow" id="arrow"></g></svg><div class="center"><div><div class="pct" id="pct">0%</div><div class="sub" id="pctSub">выберите предметы</div></div></div></div>
+   <div class="chips" id="chips"></div><button class="btn pri" style="width:100%;padding:14px;font-size:17px" id="goBtn" data-act="doupg">Апгрейд</button></div>
+  <div><div class="panels"><div class="pn" id="pnL"></div><div class="pn" id="pnR"></div></div>
+  </div></div>
+  <div class="up-lists"><div class="panel pad"><h3 style="margin-bottom:10px">Мои скины</h3><div id="uplistL" class="scrl"></div></div>
+  <div class="panel pad"><h3 style="margin-bottom:10px">Желаемые скины</h3><div id="upfilters"></div><div id="uplistR" class="scrl"></div></div></div>`;
+}
+function upInit() {
+  let h = ''; for (let i = 0; i < 72; i++) { const a = i * 5 * Math.PI / 180, r1 = 184, r2 = i % 6 === 0 ? 172 : 178; h += `<line x1="${200 + Math.sin(a) * r1}" y1="${200 - Math.cos(a) * r1}" x2="${200 + Math.sin(a) * r2}" y2="${200 - Math.cos(a) * r2}"/>`; }
+  $('#ticks').innerHTML = h; applyArrow(); const ar = $('#arrow'); if (ar) ar.style.transform = `rotate(${rot}deg)`; renderUpAll();
+}
+function renderUpAll() { renderWheel(); renderChips(); renderPanels(); renderUpList(); renderTools(); }
+function renderTools() { const s = $('#tSound'); if (s) { s.classList.toggle('on', st.set.sound); s.style.opacity = st.set.sound ? 1 : 0.5; } const f = $('#tFast'); if (f) f.classList.toggle('on', st.set.mode === 'fast'); }
+function renderChips() { const c = $('#chips'); if (!c) return; c.innerHTML = st.set.mult.map((m) => `<button class="chp m" data-act="qmult" data-arg="${m}">x${m}</button>`).join('') + st.set.pct.map((p) => `<button class="chp" data-act="qpct" data-arg="${p}">${p}%</button>`).join(''); }
+function renderWheel() {
+  const fz = spinFrozen; const S = fz ? fz.S : stake(), ch = fz ? fz.ch : chanceNow(); setArc(Math.min(ch, 0.95)); const pc = $('#pct'); if (!pc) return;
+  if (!fz && (!upTarget || S <= 0)) { pc.style.color = ''; pc.textContent = '0%'; $('#pctSub').textContent = S <= 0 ? 'выберите предметы' : 'выберите цель'; return; }
+  const T = fz ? fz.T : tgtPrice(); pc.textContent = (ch >= 1 || ch < 0.1 ? (ch * 100).toFixed(2) : (ch * 100).toFixed(1)).replace(/\.0+$/, '') + '%';
+  pc.style.color = ch < 0.25 ? '#ff6b5b' : ch < 0.6 ? '#ffc94a' : '#3ddc84'; $('#pctSub').textContent = 'x' + (T / S).toFixed(2) + ' · ' + (ch < 0.25 ? 'низкий шанс' : ch < 0.6 ? 'средний шанс' : 'высокий шанс');
+}
+function renderPanels() {
+  const l = $('#pnL'); if (!l) return; const items = st.inv.filter((i) => upSel.has(i.id));
+  l.innerHTML = `<h4>Ваша ставка</h4><small>Предметы из инвентаря и/или токены</small><div class="mini">${items.map((i) => `<span>${esc(i.name.split(' | ').slice(-1)[0])} · ${fmt(i.p)}</span>`).join('') || '<small>Пока пусто — выберите в «Мои скины»</small>'}</div>
+  <input class="in" type="number" inputmode="numeric" min="0" placeholder="Токены с баланса" value="${stakeBal || ''}" id="stkIn"><small>Ставка: <b id="stk" style="color:var(--gold)">${fmt(stake())}</b></small>`;
+  const t = upTarget && DATA.byKey.get(upTarget.key);
+  $('#pnR').innerHTML = `<h4>Цель апгрейда</h4>` + (t ? `<div class="card" style="--rc:${esc(t.rc)}99;cursor:default"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(t.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(t.rc)}">${itemBox(t.img, t.rc, t.name)}</div><div class="n">${esc(t.pat)}</div><div class="r"><span style="color:${esc(t.rc)}">${WEARS[upTarget.w].s}</span>${cn(t.prices[upTarget.w])}</div></div>` : '<small>Выберите цель в каталоге или нажмите «Ввести цену»</small>') + `<button class="btn sm" data-act="upprice">Ввести цену</button>`;
+}
+function setStakeBal(v) { if (!spinning) spinFrozen = null; let n = Math.max(0, Math.floor(+v || 0)); if (n > st.balance) { n = st.balance; toast('Не больше вашего баланса'); const e = $('#stkIn'); if (e) e.value = n || ''; } stakeBal = n; renderWheel(); const e = $('#stk'); if (e) e.textContent = fmt(stake()); }
+function upFilterBar() {
+  const o = (v, cur, l) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${l}</option>`;
+  return `<div class="row" style="margin-bottom:10px"><input class="in" style="width:140px" id="uq" placeholder="Поиск" value="${esc(upf.q)}"><input class="in" style="width:92px" id="umin" type="number" placeholder="от" value="${esc(upf.min)}"><input class="in" style="width:92px" id="umax" type="number" placeholder="до" value="${esc(upf.max)}"><select class="in" style="width:auto" id="ucat">${o('', upf.cat, 'Все типы')}${o('w', upf.cat, 'Оружие')}${o('k', upf.cat, 'Ножи')}${o('g', upf.cat, 'Перчатки')}</select><select class="in" style="width:auto" id="usort">${o('asc', upf.sort, 'Дешёвые')}${o('desc', upf.sort, 'Дорогие')}</select></div>`;
+}
+function renderUpList(keepFilters) {
+  const L = $('#uplistL'), R = $('#uplistR'); if (!L) return; if (!keepFilters) $('#upfilters').innerHTML = upFilterBar();
+  const list = st.inv.slice().sort((a, b) => b.p - a.p);
+  L.innerHTML = list.length ? `<div class="row" style="margin-bottom:10px"><button class="btn sm" data-act="upall">Выбрать все</button><button class="btn sm" data-act="upnone">Снять выбор</button></div><div class="grid g-sm">${list.map((i) => `<div class="card ${upSel.has(i.id) ? 'sel' : ''}" style="--rc:${esc(i.rc)}99" data-act="upsel" data-arg="${esc(i.id)}"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(i.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(i.rc)}">${itemBox(i.img, i.rc, i.name)}</div><div class="n">${esc(i.name.split(' | ')[1] || i.name)}</div><div class="r"><span style="color:${esc(i.rc)}">${WEARS[i.w].s}</span>${cn(i.p)}</div></div>`).join('')}</div>` : '<div class="state" style="padding:20px"><p>Нет предметов. Откройте кейсы или поставьте токены с баланса.</p></div>';
+  const q = upf.q.trim().toLowerCase(), mn = +upf.min || 0, mx = +upf.max || Infinity;
+  let all = upAll().filter((x) => x.price >= mn && x.price <= mx && (!q || x.it.name.toLowerCase().includes(q)) && (!upf.cat || x.it.cat === upf.cat));
+  if (upf.sort === 'desc') all = all.slice().reverse();
+  const shown = all.slice(0, upLimit);
+  R.innerHTML = all.length ? `<div class="grid g-sm">${shown.map((x) => `<div class="card ${upTarget && upTarget.key === x.it.key && upTarget.w === x.w ? 'sel' : ''}" style="--rc:${esc(x.it.rc)}99" data-act="uptarget" data-arg="${esc(x.key)}"><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(x.it.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(x.it.rc)}">${itemBox(x.it.img, x.it.rc, x.it.name)}</div><div class="w">${esc(x.it.weapon)}</div><div class="n">${esc(x.it.pat)}</div><div class="r"><span style="color:${esc(x.it.rc)}">${WEARS[x.w].s}</span>${cn(x.price)}</div></div>`).join('')}</div>${all.length > upLimit ? `<div class="pg"><button class="btn" data-act="upmore">Показать ещё (${all.length - upLimit})</button></div>` : ''}` : '<div class="state" style="padding:20px"><h3>Ничего не найдено</h3></div>';
+}
+function pickTargetKey(k) { spinFrozen = null; const [key, w] = [k.slice(0, k.lastIndexOf('|')), +k.slice(k.lastIndexOf('|') + 1)]; upTarget = { key, w }; renderUpAll(); }
+function needStake() { if (stake() <= 0) { toast('Сначала выберите предметы или токены'); return true; } return false; }
+function quickPct(p) { if (spinning || needStake()) return; spinFrozen = null; sClick(); const S = stake(); const t = nearest(S * EDGE / (p / 100), S * 1.01, S * EDGE / 0.01)[0]; if (!t) { toast('Нет подходящего предмета'); return; } upTarget = { key: t.it.key, w: t.w }; renderUpAll(); }
+function quickMult(m) { if (spinning || needStake()) return; spinFrozen = null; sClick(); const S = stake(); const t = nearest(S * m, S * 1.01, S * EDGE / 0.01)[0]; if (!t) { toast('Нет подходящего предмета'); return; } upTarget = { key: t.it.key, w: t.w }; renderUpAll(); }
+function upPriceModal() {
+  if (spinning) return;
+  modal(`<h3>Цена предмета</h3><p style="color:var(--mut);margin:6px 0 10px">Впишите цену — покажем ближайшие предметы.</p><input class="in" id="pIn" type="number" inputmode="numeric" placeholder="Например, 50000" style="font-size:18px;margin-bottom:10px"><div class="grid g-sm" id="pList"></div><button class="btn" style="margin-top:14px" data-act="close">Закрыть</button>`);
+  $('#pIn').value = stake() ? Math.round(stake() * 2) : ''; priceList();
+}
+function priceList() {
+  const p = +$('#pIn').value || 0, S = stake(); const arr = p > 0 ? nearest(p, Math.max(S * 1.01, 0), Infinity, 8) : [];
+  $('#pList').innerHTML = arr.map((x) => `<div class="card" style="--rc:${esc(x.it.rc)}99" data-act="pickprice" data-arg="${esc(x.key)}"><div class="im" style="background:#121820;border-bottom:2px solid ${esc(x.it.rc)}">${itemBox(x.it.img, x.it.rc, x.it.name)}</div><div class="n">${esc(x.it.pat)}</div><div class="r"><span>${WEARS[x.w].s}</span>${cn(x.price)}</div></div>`).join('') || '<small>Введите цену</small>';
+}
+/* настройки */
+let tmpSet = null;
+function openSettings() { if (spinning) return; tmpSet = JSON.parse(JSON.stringify(st.set)); if (!MODES[tmpSet.mode]) tmpSet.mode = 'old'; if (!ARROWS[tmpSet.arrow]) tmpSet.arrow = 'tri'; renderSettings(); }
+function renderSettings() {
+  const m = tmpSet.mult, p = tmpSet.pct;
+  modal(`<h3>Быстрый выбор</h3>
+  <div class="qrow"><p>Кнопки быстрого выбора по множителю</p><div class="r">${m.map((v, i) => `<input class="in" type="number" step="any" value="${v}" data-tmp="mult.${i}">`).join('')}<button class="btn sm" data-act="rstmult" aria-label="Сбросить">↻</button></div></div>
+  <div class="qrow"><p>Кнопки быстрого выбора по процентам</p><div class="r">${p.map((v, i) => `<input class="in" type="number" step="any" value="${v}" data-tmp="pct.${i}">`).join('')}<button class="btn sm" data-act="rstpct" aria-label="Сбросить">↻</button></div></div>
+  <h4 style="margin-top:12px">Звук</h4>
+  <div class="rad ${tmpSet.sound ? 'on' : ''}" data-act="tmpsound" data-arg="1"><i></i><div><b>Включён</b><span>Клики, звук прокрутки и фанфары</span></div></div>
+  <div class="rad ${!tmpSet.sound ? 'on' : ''}" data-act="tmpsound" data-arg="0"><i></i><div><b>Выключен</b><span>Без звуковых эффектов</span></div></div>
+  <h4 style="margin-top:12px">Тип прокрутки</h4>${modeRadios()}<h4 style="margin-top:12px">Стрелка</h4>
+  <div class="arrows">${Object.keys(ARROWS).map((k) => `<button class="ab ${tmpSet.arrow === k ? 'on' : ''}" data-act="tmparrow" data-arg="${k}" aria-label="Стрелка ${k}">${arrowSvg(k)}</button>`).join('')}</div>
+  <button class="btn pri" style="width:100%;margin-top:16px" data-act="savesettings">Сохранить и закрыть</button>`);
+}
+function modeRadios() {
+  const L = [['old', 'Старая прокрутка', 'Классика: плавный разгон и торможение с небольшим накатом, около 5 секунд.'], ['new', 'Новая прокрутка', 'Как на кейс-баттле: мягкий старт, 5 оборотов и ровное торможение за 9 секунд.'], ['gamble', 'Азартная прокрутка', 'Около 10 секунд: быстрый разгон, а перед остановкой стрелка еле ползёт.'], ['fast', 'Быстрая прокрутка', 'Короткая, около 2 секунд.']];
+  return L.map(([k, n, d]) => `<div class="rad ${tmpSet.mode === k ? 'on' : ''}" data-act="tmpmode" data-arg="${k}"><i></i><div><b>${n}</b><span>${d}</span></div></div>`).join('');
+}
+function saveSettings() {
+  const m = tmpSet.mult.map(Number), p = tmpSet.pct.map(Number);
+  if (m.some((x) => !(x > 1))) { toast('Множитель должен быть больше 1'); return; }
+  if (p.some((x) => !(x >= 1 && x <= 90))) { toast('Проценты — от 1 до 90'); return; }
+  st.set = Object.assign({}, tmpSet, { mult: m, pct: p }); save(); closeModal(); applyArrow(); renderChips(); renderTools();
+}
+/* плавные профили скорости (как в оригинале) */
+function profFromV(vf) { const N = 500, c = [0]; let sum = 0; for (let i = 1; i <= N; i++) { sum += Math.max(0, vf(i / N)); c.push(sum); } return c.map((x) => x / sum); }
+const sstep = (x) => x * x * (3 - 2 * x);
+function makeProf(a, pw) { return profFromV((t) => (t < a ? sstep(t / a) : Math.pow(Math.max(0, 1 - (t - a) / (1 - a)), pw))); }
+const VT_NEW = [0.0, 0.243, 0.422, 0.601, 0.738, 0.825, 0.858, 0.91, 0.986, 1.0, 0.946, 0.891, 0.849, 0.78, 0.678, 0.586, 0.524, 0.489, 0.467, 0.44, 0.415, 0.385, 0.351, 0.323, 0.304, 0.275, 0.245, 0.227, 0.217, 0.214, 0.213, 0.211, 0.209, 0.209, 0.206, 0.202, 0.196, 0.19, 0.183, 0.175, 0.167, 0.158, 0.15, 0.145, 0.139, 0.132, 0.126, 0.121, 0.116, 0.113, 0.113, 0.111, 0.103, 0.097, 0.093, 0.091, 0.087, 0.083, 0.08, 0.077, 0.075, 0.072, 0.069, 0.066, 0.063, 0.06, 0.057, 0.053, 0.049, 0.047, 0.046, 0.043, 0.039, 0.037, 0.035, 0.031, 0.027, 0.026, 0.023, 0.02, 0.018, 0.016, 0.014, 0.012, 0.01, 0.008, 0.006, 0.004, 0.003, 0.002, 0.0];
+function vInterp(tab, u) { const x = Math.min(1, Math.max(0, u)) * (tab.length - 1), i = Math.min(tab.length - 2, Math.floor(x)); return tab[i] + (tab[i + 1] - tab[i]) * (x - i); }
+let PROFS = null;
+const MODES = { fast: { dur: 2200, turns: 4, bonus: 2200 }, gamble: { dur: 10500, turns: 12, bonus: 7500 }, new: { dur: 9000, turns: 5, bonus: 6500 }, old: { dur: 5400, turns: 7, bonus: 4800 } };
+function profs() { if (!PROFS) PROFS = { fast: makeProf(0.16, 2.4), old: makeProf(0.16, 2.4), new: profFromV((u) => vInterp(VT_NEW, u)), gamble: profFromV((u) => (u < 0.06 ? sstep(u / 0.06) : u < 0.62 ? 0.16 + 0.84 * (0.5 + 0.5 * Math.cos(Math.PI * (u - 0.06) / 0.56)) : (0.16 * Math.pow(Math.max(0, 1 - (u - 0.62) / 0.38), 1.3) + 0.07 * Math.pow(Math.sin(Math.PI * (u - 0.62) / 0.38), 2)))) }; return PROFS; }
+function profAt(P, t) { const N = P.length - 1, x = Math.min(1, Math.max(0, t)) * N, i = Math.floor(x); if (i >= N) return 1; return P[i] + (P[i + 1] - P[i]) * (x - i); }
+function animate(dur, onFrame, P) { return new Promise((res) => { const t0 = performance.now(); (function f(now) { const t = (now - t0) / dur; if (t >= 1) { onFrame(1); res(); return; } onFrame(profAt(P, t)); requestAnimationFrame(f); })(t0); }); }
+/* сам апгрейд */
+async function doUpgrade() {
+  if (spinning) return; if (!upTarget) { toast('Выберите предмет для апгрейда'); return; }
+  const S = stake(); if (S <= 0) { toast('Выберите предметы или баланс'); return; }
+  if (stakeBal > st.balance) { toast('Не хватает токенов на балансе'); return; }
+  const tit = DATA.byKey.get(upTarget.key); const T = tit.prices[upTarget.w];
+  if (T < S * 1.01) { toast('Цель должна быть дороже ставки'); return; }
+  const ch = Math.min(0.95, S / T * EDGE); if (ch < 0.01) { toast('Шанс меньше 1% — выберите цель подешевле'); return; }
+  const tgt = { ...upTarget }; spinFrozen = { ch, S, T };
+  if (stakeBal > 0) addOp('Апгрейд: ставка токенами', -stakeBal);
+  st.inv = st.inv.filter((i) => !upSel.has(i.id)); upSel.clear(); stakeBal = 0; st.stats.upg++;
+  let win = Math.random() < ch; const ls = st.ls || 0;
+  if (!win && ls >= 3 && ch >= 0.05 && Math.random() < Math.min(0.5, 0.15 + (ls - 3) * 0.07)) win = true;   // «жалость» после серии проигрышей
+  const zone = ch * 360, pad = Math.min(2, zone / 4), s0 = 180 - zone / 2;
+  let a = win ? pad + Math.random() * (zone - 2 * pad) : zone + 2 + Math.random() * (360 - zone - 4);
+  if (!win && 360 - zone < 6) a = zone + (360 - zone) / 2;
+  a = (((a + s0) % 360) + 360) % 360;
+  spinning = true; modalLock = true; $('#goBtn').disabled = true; renderPanels(); renderWheel(); renderUpList();
+  const M = MODES[st.set.mode] || MODES.old; const start = ((rot % 360) + 360) % 360; const delta = (((a - start) % 360) + 360) % 360; const final = start + 360 * M.turns + delta;
+  const ar = $('#arrow'); let lastK = -1;
+  await animate(M.dur, (p) => { const ang = start + (final - start) * p; if (ar) ar.style.transform = `rotate(${ang}deg)`; const k = Math.floor(ang / 15); if (k !== lastK) { lastK = k; sTick(); } }, profs()[st.set.mode] || profs().old);
+  rot = final; spinning = false; modalLock = false; const gb = $('#goBtn'); if (gb) gb.disabled = false;
+  qEvent('upg', 1);
+  if (win) { st.qs = (st.qs || 0) + 1; qEvent('upgwin', 1); qEvent('lowwin', ch * 100); qEvent('streak', st.qs); } else st.qs = 0;
+  st.ls = win ? 0 : (st.ls || 0) + 1;
+  if (win) {
+    const inst = makeInst(tit, tgt.w, false, null, 'upgrade'); st.inv.unshift(inst); st.stats.wins++; const b = st.stats.best; if (!b || inst.p > b.p) st.stats.best = { name: inst.name, img: inst.img, rc: inst.rc, p: inst.p };
+    save(); renderBal(); sWin(); upgResult(true, inst, ch);
+  } else {
+    save(); sLose();
+    const pool = upAll().filter((x) => x.price >= Math.max(1, S * 0.1) && x.price <= S * 1.5);
+    if (Math.random() < BONUS_CHANCE && pool.length >= 3) { renderUpAll(); showBonus(S, pool); return; }
+    upgResult(false, { img: tit.img, rc: tit.rc, name: tit.name, p: T }, ch);
+  }
+  renderUpAll();
+}
+function upgResult(win, it, ch) {
+  modal(`<div class="res"><div class="big ${win ? 'win' : 'lose'}">${win ? 'Победа!' : 'Не повезло'}</div>${imgBox(it.img, it.rc, it.name)}<div style="font:700 22px Rajdhani,system-ui;color:#fff;margin:10px 0 4px">${esc(it.name)}</div>${win ? `<div style="margin-bottom:12px">${cn(it.p)}</div>` : `<p style="color:var(--mut)">Ставка сгорела. Шанс был ${(ch * 100).toFixed(1)}%.</p>`}
+  ${win ? `<button class="btn gold" style="width:100%;margin-bottom:8px" data-act="sell1" data-arg="${esc(it.id)}">Продать за ${fmt(it.p)}</button>` : ''}<button class="btn" style="width:100%" data-act="close">${win ? 'Оставить в инвентаре' : 'Попробовать снова'}</button></div>`);
+}
+function pickWeighted(pool, S) { const w = pool.map((x) => Math.exp(-3 * x.price / S)); let sum = w.reduce((a, b) => a + b, 0), r = Math.random() * sum; for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r <= 0) return pool[i]; } return pool[pool.length - 1]; }
+const miniCard = (x) => `<div class="bc" style="border-bottom-color:${esc(x.it.rc)}"><img referrerpolicy="no-referrer" src="${esc(x.it.img)}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(x.it.pat)}</span><small>${WEARS[x.w].s} · ${fmt(x.price)}</small></div>`;
+async function showBonus(S, pool) {
+  const WIN = 38, N = 46, STEP = 108, prize = pickWeighted(pool, S); const cards = []; for (let i = 0; i < N; i++) cards.push(i === WIN ? prize : pickWeighted(pool, S));
+  modalLock = true; modal(`<div class="res"><div class="big" style="color:var(--gold)">Бонус за проигрыш!</div><div class="bwrap" id="bwrap"><div class="bmark"></div><div class="bstrip" id="bstrip">${cards.map(miniCard).join('')}</div></div><div id="bres" style="min-height:90px"></div></div>`);
+  spinning = true; const W = $('#bwrap').clientWidth, strip = $('#bstrip'); const endX = W / 2 - (WIN * STEP + 50) + (Math.random() * 60 - 30);
+  const M = MODES[st.set.mode] || MODES.old; let lastK = -1;
+  await animate(M.bonus, (p) => { const x = endX * p; strip.style.transform = `translateX(${x}px)`; const k = Math.floor(-x / STEP); if (k !== lastK) { lastK = k; sTick(); } }, profs()[st.set.mode] || profs().old);
+  spinning = false; modalLock = false;
+  const inst = makeInst(prize.it, prize.w, false, null, 'bonus'); st.inv.unshift(inst); save(); sWin(); renderUpAll();
+  const bres = $('#bres'); if (bres) bres.innerHTML = `<p style="margin:6px 0 10px"><b style="color:var(--grn)">${esc(inst.name)}</b><br><span style="color:var(--mut)">${esc(WEARS[prize.w].n)} · </span>${cn(prize.price)}</p><button class="btn pri" data-act="close">Забрать</button>`;
+}
+
+let farmTimer = null;
+function startFarmTimer() { clearInterval(farmTimer); farmTimer = setInterval(() => { if (route.page !== 'farm') { clearInterval(farmTimer); return; } let ready = false; document.querySelectorAll('[data-cd]').forEach((e) => { const l = +e.dataset.cd; const left = qLeft(l); if (left <= 0) ready = true; else e.textContent = hms(left).slice(3); }); if (ready && !$('#ov')) renderFarmIfOpen(); }, 1000); }
+
+/* ================= ежедневные задания (обновление в 23:00 МСК = 20:00 UTC) ================= */
+const Q_RESET_UTC_H = 20;
+const qDay = () => Math.floor((Date.now() - Q_RESET_UTC_H * 3600000) / 86400000);
+const qNextMs = () => (qDay() + 1) * 86400000 + Q_RESET_UTC_H * 3600000 - Date.now();
+function rngS(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const QT = {
+  easy: [
+    { ev: 'case', txt: (n) => `Открой ${n} ${pl(n, 'кейс', 'кейса', 'кейсов')}`, v: [[2, 800], [3, 1100], [4, 1400]] },
+    { ev: 'clk', txt: (n) => `Сделай ${n} кликов в кликере`, v: [[60, 700], [100, 1000], [150, 1300]] },
+    { ev: 'quiz', txt: (n) => `Угадай ${n} ${pl(n, 'скин', 'скина', 'скинов')} в викторине`, v: [[3, 900], [4, 1200], [5, 1500]] },
+    { ev: 'sell', txt: (n) => `Продай ${n} ${pl(n, 'предмет', 'предмета', 'предметов')}`, v: [[2, 700], [3, 1000], [5, 1400]] },
+    { ev: 'upg', txt: (n) => `Сделай ${n} ${pl(n, 'апгрейд', 'апгрейда', 'апгрейдов')}`, v: [[1, 900], [2, 1300], [3, 1700]] }
+  ],
+  mid: [
+    { ev: 'case', txt: (n) => `Открой ${n} ${pl(n, 'кейс', 'кейса', 'кейсов')}`, v: [[6, 2500], [8, 3300], [10, 4200]] },
+    { ev: 'farm', txt: (n) => `Заработай ${fmt(n)} токенов в фарме`, v: [[8000, 2500], [12000, 3200], [18000, 4000]] },
+    { ev: 'upgwin', txt: (n) => `Выиграй ${n} ${pl(n, 'апгрейд', 'апгрейда', 'апгрейдов')}`, v: [[1, 3000], [2, 4500], [3, 6000]] },
+    { ev: 'quiz', txt: (n) => `Угадай ${n} ${pl(n, 'скин', 'скина', 'скинов')} в викторине`, v: [[8, 2800], [10, 3500], [12, 4300]] },
+    { ev: 'sellsum', txt: (n) => `Продай предметы на ${fmt(n)} токенов`, v: [[10000, 2600], [20000, 3600], [40000, 4600]] },
+    { ev: 'caseX', txt: (n) => `Открой ${n} ${pl(n, 'кейс', 'кейса', 'кейсов')} стоимостью от 2 000 токенов`, v: [[2, 3000], [3, 4000], [4, 5000]] }
+  ],
+  hard: [
+    { ev: 'lowwin', txt: (n) => `Выиграй апгрейд с шансом ${n}% или ниже`, v: [[30, 7000], [20, 9000], [10, 12000]] },
+    { ev: 'streak', txt: (n) => `Выиграй ${n} ${pl(n, 'апгрейд', 'апгрейда', 'апгрейдов')} подряд`, v: [[2, 8000], [3, 11000], [4, 15000]] },
+    { ev: 'big', txt: (n) => `Выбей из кейса предмет, который стоит в 3+ раза больше кейса (${n} ${pl(n, 'раз', 'раза', 'раз')})`, v: [[1, 7500], [2, 10000], [3, 13000]] }
+  ]
+};
+let QC = null;
+function genQuests(day) {
+  const r = rngS(day * 7919 + 13);
+  const mk = (tier, t, id) => { const v = t.v[Math.floor(r() * t.v.length)], n = v[0]; return { id, tier, ev: t.ev, n, target: t.ev === 'lowwin' ? 1 : n, reward: v[1], text: t.txt(n) }; };
+  const two = (arr) => { const i1 = Math.floor(r() * arr.length); let i2; do { i2 = Math.floor(r() * arr.length); } while (i2 === i1); return [arr[i1], arr[i2]]; };
+  const [e1, e2] = two(QT.easy), [m1, m2] = two(QT.mid);
+  return [mk('easy', e1, 'q0'), mk('easy', e2, 'q1'), mk('mid', m1, 'q2'), mk('mid', m2, 'q3'), mk('hard', QT.hard[Math.floor(r() * QT.hard.length)], 'q4')];
+}
+function ensureQ() { const d = qDay(); if (!QC || QC.day !== d) QC = { day: d, list: genQuests(d) }; if (!st.qd || st.qd.day !== d) st.qd = { day: d, prog: {}, claimed: {} }; return QC.list; }
+function qEvent(ev, n = 1) {
+  const qs = ensureQ();
+  qs.forEach((q) => {
+    if (st.qd.claimed[q.id]) return; const before = st.qd.prog[q.id] || 0; let p = before;
+    if (q.ev === 'lowwin') { if (ev === 'lowwin' && n <= q.n) p += 1; } else if (q.ev === 'streak') { if (ev === 'streak') p = Math.max(p, n); } else if (q.ev === ev) p += n;
+    p = Math.min(p, q.target);
+    if (p !== before) { st.qd.prog[q.id] = p; if (p >= q.target) toast('Задание выполнено! Забери награду в профиле'); }
+  });
+  schedSave();
+}
+function claimQuest(id) {
+  const q = ensureQ().find((x) => x.id === id); if (!q || st.qd.claimed[id]) return;
+  if ((st.qd.prog[id] || 0) < q.target) { toast('Ещё не выполнено'); return; }
+  st.qd.claimed[id] = true; addOp('Награда за задание', q.reward); sWin(); toast('+' + fmt(q.reward) + ' токенов'); refreshView();
+}
+function questsHTML() {
+  const qs = ensureQ(); const TN = { easy: 'Лёгкое', mid: 'Среднее', hard: 'Тяжёлое' };
+  return qs.map((q) => { const p = st.qd.prog[q.id] || 0, done = p >= q.target, cl = !!st.qd.claimed[q.id];
+    return `<div class="qc"><div class="top2"><span class="tag ${q.tier === 'mid' ? 'mid' : q.tier}">${TN[q.tier]}</span><span>${fmt(p)}/${fmt(q.target)}</span></div><div class="tx">${esc(q.text)}</div><div class="bar"><i style="width:${Math.round(p / q.target * 100)}%"></i></div>
+    <div class="bt">${cn(q.reward)}${cl ? '<b style="color:var(--grn)">Получено ✓</b>' : done ? `<button class="btn pri sm" data-act="claimq" data-arg="${q.id}">Забрать</button>` : '<span style="color:var(--mut);font-size:12px">В процессе</span>'}</div></div>`; }).join('');
+}
+
+/* ================= профиль ================= */
+const DAILY_CD = 20 * 3600e3;
+let profTimer = null;
+function startProfileTimer() { clearInterval(profTimer); profTimer = setInterval(() => { const e = $('#qtm'); if (!e) { clearInterval(profTimer); return; } const l = qNextMs(); e.textContent = hms(l); if (l <= 1000) refreshView(); const d = $('#dailyLeft'); if (d) { const left = DAILY_CD - (Date.now() - st.lastDaily); if (left <= 0) refreshView(); else d.textContent = hms(left); } }, 1000); }
+function pageProfile() {
+  const s = st.stats; const inv = st.inv.reduce((a, i) => a + i.p, 0); const wr = s.upg ? Math.round(s.wins / s.upg * 100) : 0;
+  const left = DAILY_CD - (Date.now() - st.lastDaily); const ready = left <= 0; const next = 1000 + Math.min(((Date.now() - st.lastDaily < 48 * 3600e3 ? st.streak : 0)), 6) * 250;
+  const b = s.best;
+  return `<div class="hd"><div><h1>Профиль</h1><p>Статистика, ежедневный бонус и задания. Прогресс хранится в этом браузере — используйте «Сохранение», чтобы перенести его.</p></div></div>
+  <div class="stats"><div class="stat"><small>Баланс</small><b>${cn(st.balance)}</b></div><div class="stat"><small>Инвентарь стоит</small><b>${cn(inv)}</b></div><div class="stat"><small>Предметов</small><b>${st.inv.length}</b></div><div class="stat"><small>Кейсов открыто</small><b>${fmt(s.cases)}</b></div><div class="stat"><small>Апгрейдов</small><b>${s.upg} (${wr}% побед)</b></div><div class="stat"><small>Продано предметов</small><b>${fmt(s.sold)}</b></div><div class="stat"><small>Верных ответов</small><b>${fmt(s.quizOk)}</b></div><div class="stat"><small>Кликов</small><b>${fmt(s.clicks)}</b></div></div>
+  ${b ? `<div class="panel pad row" style="margin-bottom:18px"><div style="width:120px">${imgBox(b.img, b.rc, b.name)}</div><div><small>Лучший предмет</small><div style="font:700 20px Rajdhani,system-ui;color:#fff">${esc(b.name)}</div>${cn(b.p)}</div></div>` : ''}
+  <div class="two" style="grid-template-columns:1fr 1fr"><div><div class="panel pad" style="margin-bottom:16px"><h2 style="font-size:22px;margin-bottom:6px">Ежедневный бонус</h2><p style="color:var(--mut);margin:0 0 10px">Раз в 20 часов. Серия дней увеличивает награду.</p>${ready ? `<button class="btn gold" data-act="daily">Забрать ${fmt(next)} токенов</button>` : `<button class="btn" disabled>Через <span id="dailyLeft">${hms(left)}</span></button>`}</div>
+  <div class="panel pad"><h2 style="font-size:22px;margin-bottom:6px">Сохранение и настройки</h2><div class="row"><button class="btn sm" data-act="savecode">Сохранение / перенос</button><button class="btn sm" data-act="soundtoggle">Звук: ${st.set.sound ? 'вкл' : 'выкл'}</button><button class="btn sm dng" data-act="resetgame">Сбросить прогресс</button></div></div></div>
+  <div class="panel pad"><h2 style="font-size:22px;margin-bottom:2px">Ежедневные задания</h2><p style="color:var(--mut);margin:0 0 12px">2 лёгких, 2 средних, 1 тяжёлое · обновление в 23:00 по Москве · через <b id="qtm" style="color:#fff">${hms(qNextMs())}</b></p>${questsHTML()}</div></div>
+  <h2 style="font-size:22px;margin:22px 0 8px">История операций</h2><div class="panel" style="overflow:auto"><table><tr><th>Время</th><th>Операция</th><th>Изменение</th><th>Баланс</th></tr>${st.ops.slice(0, 40).map((o) => `<tr><td>${new Date(o.t).toLocaleString('ru-RU')}</td><td>${esc(o.d)}</td><td style="color:${o.delta >= 0 ? 'var(--grn)' : '#fca5a5'}">${o.delta >= 0 ? '+' : ''}${fmt(o.delta)}</td><td>${fmt(o.bal)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:var(--mut)">Пока пусто</td></tr>'}</table></div>`;
+}
+function claimDaily() {
+  if (Date.now() - st.lastDaily < DAILY_CD) return;
+  st.streak = (Date.now() - st.lastDaily < 48 * 3600e3 ? st.streak : 0) + 1; const amt = 1000 + Math.min(st.streak - 1, 6) * 250; st.lastDaily = Date.now(); addOp('Ежедневный бонус', amt); sWin(); toast('+' + fmt(amt) + ' токенов'); refreshView();
+}
+function makeCode() { return btoa(unescape(encodeURIComponent(JSON.stringify(st)))); }
+function saveModal() {
+  modal(`<h3>Сохранение прогресса</h3><p style="color:var(--mut);margin:6px 0 10px">Прогресс хранится в браузере, где открыт файл. В другом браузере он не появится сам: скопируйте код и вставьте его там, где хотите продолжить.</p><textarea class="in" id="svCode" rows="4" readonly>${makeCode()}</textarea>
+  <div class="row" style="margin:8px 0"><button class="btn sm pri" data-act="copycode">Скопировать код</button><button class="btn sm" data-act="dlsave">Скачать файл</button></div><h4 style="margin-top:10px">Загрузить прогресс</h4><textarea class="in" id="svIn" rows="3" placeholder="Вставьте код сохранения"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" data-act="importcode">Загрузить</button><button class="btn" data-act="close">Закрыть</button></div>`);
+}
+function importCode() {
+  try {
+    const o = JSON.parse(decodeURIComponent(escape(atob($('#svIn').value.trim())))); if (!o || typeof o.balance !== 'number' || !Array.isArray(o.inv)) throw new Error('bad');
+    const d = DEF(); st = Object.assign(d, o); st.stats = Object.assign(DEF().stats, o.stats || {}); st.set = Object.assign(DEF().set, o.set || {}); st.quiz = Object.assign(DEF().quiz, o.quiz || {}); save(); closeModal(); toast('Прогресс загружен'); render();
+  } catch (e) { toast('Код не подходит'); }
+}
+
+/* ================= контракты ================= */
+function ctItems() { return st.inv.filter((i) => i.tier >= 1 && i.tier <= 5).sort((a, b) => b.tier - a.tier || b.p - a.p); }
+function ctOutcomes(sel) {
+  const t = sel[0].tier + 1; const cand = DATA.items.filter((i) => i.tier === t && i.cat === 'w' && !i.iconic);
+  const byCol = new Map(); cand.forEach((i) => i.cols.forEach((c) => { (byCol.get(c) || byCol.set(c, []).get(c)).push(i); }));
+  const w = new Map();
+  for (const x of sel) for (const c of x.cols || []) { const L = byCol.get(c); if (!L) continue; for (const it of L) w.set(it, (w.get(it) || 0) + (1 / x.cols.length) / L.length); }
+  let list = [...w.entries()]; if (!list.length) list = cand.map((i) => [i, 1]);
+  const sum = list.reduce((a, [, v]) => a + v, 0); return list.map(([it, v]) => ({ it, p: v / sum })).sort((a, b) => b.p - a.p);
+}
+function ctWearPrice(it, f) { let w = f < 0.07 ? 0 : f < 0.15 ? 1 : 2; if (!(it.prices[w] > 0)) w = it.prices.findIndex((p) => p > 0); return w; }
+function pageContracts() {
+  const list = ctItems(); const selItems = list.filter((i) => ui.ct.has(i.id)); const n = selItems.length;
+  let prev = '', err = '';
+  if (n === 10) { if (new Set(selItems.map((i) => i.tier)).size > 1) err = 'Все предметы должны быть одной редкости.'; else { const out = ctOutcomes(selItems); const ev = out.reduce((a, o) => a + o.p * o.it.ev, 0); const inSum = selItems.reduce((a, i) => a + i.p, 0);
+    prev = `<div class="panel pad" style="margin-bottom:14px"><b style="color:#fff">Возможные результаты</b> <small>(стоимость входа ${fmt(inSum)} · средний выход ≈ ${fmt(ev)})</small><div class="grid g-sm" style="margin-top:10px">${out.slice(0, 8).map((o) => `<div class="card" style="--rc:${esc(o.it.rc)}99;cursor:default"><div class="im" style="background:#121820;border-bottom:2px solid ${esc(o.it.rc)}">${itemBox(o.it.img, o.it.rc, o.it.name)}</div><div class="n">${esc(o.it.pat)}</div><div class="r"><span style="color:var(--br)">${pct(o.p)}</span>${cn(o.it.ev)}</div></div>`).join('')}</div>${out.length > 8 ? `<small>…и ещё ${out.length - 8}</small>` : ''}</div>`; } }
+  else if (n > 10) err = 'Нужно ровно 10 предметов.';
+  return `<div class="hd"><div><h1>Контракты</h1><p>Обменяйте 10 предметов одной редкости на 1 предмет следующей редкости из тех же коллекций. Чем лучше износ входящих предметов, тем лучше износ результата.</p></div><div class="row"><b style="color:#fff">Выбрано ${n}/10</b><button class="btn pri" data-act="ctgo" ${n === 10 && !err ? '' : 'disabled'}>Подписать контракт</button><button class="btn" data-act="ctclear" ${n ? '' : 'disabled'}>Сбросить</button></div></div>
+  ${err ? `<div class="warn">${err}</div>` : ''}${prev}
+  ${list.length ? `<div class="grid g-items">${list.map((i) => `<div class="card ${ui.ct.has(i.id) ? 'sel' : ''}" style="--rc:${esc(i.rc)}99" data-act="ctpick" data-arg="${esc(i.id)}"><span class="ck">${ui.ct.has(i.id) ? '✓' : ''}</span><div class="im" style="background:radial-gradient(70% 70% at 50% 45%,${esc(i.rc)}30,transparent 75%),#121820;border-bottom:2px solid ${esc(i.rc)}">${itemBox(i.img, i.rc, i.name)}</div><div class="n">${esc(i.name.split(' | ')[1] || i.name)}</div><div class="r"><span style="color:${esc(i.rc)}">${esc(i.rn)} · ${WEARS[i.w].s}</span>${cn(i.p)}</div></div>`).join('')}</div>` : '<div class="panel state"><h3>Нет подходящих предметов</h3><p>Нужны предметы редкости от «Ширпотреб» до «Засекреченное». Откройте кейсы, чтобы их получить.</p><button class="btn pri" data-act="goto" data-to="cases">К кейсам</button></div>'}`;
+}
+function runContract() {
+  const sel = st.inv.filter((i) => ui.ct.has(i.id)); if (sel.length !== 10 || new Set(sel.map((i) => i.tier)).size > 1) return;
+  const out = ctOutcomes(sel); let r = rfloat(), acc = 0, pick = out[out.length - 1];
+  for (const o of out) { acc += o.p; if (r < acc) { pick = o; break; } }
+  const norm = sel.reduce((a, i) => { const sp = i.max - i.min; return a + (sp > 0 ? Math.min(1, Math.max(0, (i.f - i.min) / sp)) : 0); }, 0) / 10;
+  const it = pick.it; const f = it.min + norm * (it.max - it.min); const w = ctWearPrice(it, f);
+  const inSum = sel.reduce((a, i) => a + i.p, 0); const ids = new Set(sel.map((i) => i.id)); st.inv = st.inv.filter((i) => !ids.has(i.id)); ui.ct.clear();
+  const inst = makeInst(it, w, false, f, 'contract'); st.inv.unshift(inst); st.stats.contracts++; addOp('Контракт: 10 предметов → ' + inst.name, 0); sWin();
+  modal(`<div class="res"><div class="big win">Контракт выполнен</div>${imgBox(inst.img, inst.rc, inst.name)}<div style="font:700 22px Rajdhani,system-ui;color:#fff;margin:10px 0 4px">${esc(inst.name)}</div><div style="color:${esc(inst.rc)}">${esc(inst.rn)} · ${esc(wearName(inst.w))}</div><p>Стоимость: ${cn(inst.p)} <small>(вход был ${fmt(inSum)})</small></p><div class="row" style="justify-content:center"><button class="btn gold" data-act="sell1" data-arg="${esc(inst.id)}">Продать за ${fmt(inst.p)}</button><button class="btn pri" data-act="close">Закрыть</button></div></div>`);
+  refreshView();
+}
+
+/* ================= события ================= */
+const refreshView = () => render(true);
+let keyHold = 0;
+const H = {
+  goto(arg, el) { if (spinning) { toast('Дождитесь окончания прокрутки'); return; } closeModal(); go(el.dataset.to, el.dataset.arg); },
+  retry() { boot(); },
+  menu() { $('#side').classList.toggle('open'); },
+  close() { closeModal(); },
+  cgroup(arg) { ui.cg = arg; refreshView(); },
+  open(arg) { openCase(arg); },
+  openn(arg) { const [slug, n] = arg.split('|'); if (+n === 1) openCase(slug); else openMany(slug, +n); },
+  again(arg) { closeModal(); if (route.page === 'case' && route.arg === arg) { if (st.set.fast) openCase(arg); else { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => openCase(arg), 250); } } else go('case', arg); },
+  fast(arg, el) { st.set.fast = el.checked; save(); },
+  sell1(arg) { const ok = sellConfirm([arg]); if (ok) { closeModal(); refreshView(); } },
+  sellids(arg) { sellIds(arg.split(',')); closeModal(); refreshView(); },
+  sellsel() { const ids = st.inv.filter((i) => ui.inv.sel.has(i.id)).map((i) => i.id); if (ids.length && sellConfirm(ids)) refreshView(); },
+  selall() { sortedInv().forEach((i) => ui.inv.sel.add(i.id)); refreshView(); },
+  selnone() { ui.inv.sel.clear(); refreshView(); },
+  pick(arg) { ui.inv.sel.has(arg) ? ui.inv.sel.delete(arg) : ui.inv.sel.add(arg); const y = window.scrollY; refreshView(); window.scrollTo(0, y); },
+  invmodal(arg) { invModal(arg); },
+  toupg(arg) { upSel.add(arg); closeModal(); go('upgrade'); },
+  skin(arg) { skinModal(arg); },
+  page(arg) { ui.cat.page = +arg; refreshView(); },
+  /* фарм */
+  qstart() { quizStart(); },
+  qlevel(arg) { quizStart(+arg); },
+  ans(arg) { quizAnswer(+arg); },
+  qretry() { qz.q = makeQuestion(qz.level); qz.locked = false; renderQuiz(); },
+  /* апгрейд */
+  upset() { openSettings(); },
+  upsound() { st.set.sound = !st.set.sound; save(); renderTools(); sClick(); },
+  upfast() { st.set.mode = st.set.mode === 'fast' ? 'old' : 'fast'; save(); renderTools(); toast(st.set.mode === 'fast' ? 'Быстрая прокрутка' : 'Старая прокрутка'); },
+  doupg() { doUpgrade(); },
+  upall() { spinFrozen = null; st.inv.forEach((i) => upSel.add(i.id)); renderUpAll(); },
+  upnone() { spinFrozen = null; upSel.clear(); renderUpAll(); },
+  upsel(arg) { if (spinning) return; spinFrozen = null; sClick(); upSel.has(arg) ? upSel.delete(arg) : upSel.add(arg); renderUpAll(); },
+  uptarget(arg) { if (spinning) return; sClick(); pickTargetKey(arg); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+  upmore() { upLimit += 40; renderUpList(true); },
+  upprice() { upPriceModal(); },
+  pickprice(arg) { pickTargetKey(arg); closeModal(); },
+  qmult(arg) { quickMult(+arg); },
+  qpct(arg) { quickPct(+arg); },
+  tmpsound(arg) { tmpSet.sound = arg === '1'; renderSettings(); },
+  tmpmode(arg) { tmpSet.mode = arg; renderSettings(); },
+  tmparrow(arg) { tmpSet.arrow = arg; renderSettings(); },
+  rstmult() { tmpSet.mult = [2, 5, 10]; renderSettings(); },
+  rstpct() { tmpSet.pct = [25, 50, 75]; renderSettings(); },
+  savesettings() { saveSettings(); },
+  /* контракты */
+  ctpick(arg) { ui.ct.has(arg) ? ui.ct.delete(arg) : ui.ct.add(arg); const y = window.scrollY; refreshView(); window.scrollTo(0, y); },
+  ctclear() { ui.ct.clear(); refreshView(); },
+  ctgo() { runContract(); },
+  /* профиль */
+  daily() { claimDaily(); },
+  claimq(arg) { claimQuest(arg); },
+  savecode() { saveModal(); },
+  copycode() { const t = $('#svCode'); t.select(); const ok = () => toast('Код скопирован'); try { navigator.clipboard.writeText(t.value).then(ok, () => { document.execCommand('copy'); ok(); }); } catch (e) { try { document.execCommand('copy'); ok(); } catch (_) { toast('Выделите код и скопируйте вручную'); } } },
+  dlsave() { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([makeCode()], { type: 'text/plain' })); a.download = 'vaultline_save.txt'; document.body.appendChild(a); a.click(); a.remove(); toast('Файл сохранён'); } catch (e) { toast('Не получилось скачать — скопируйте код'); } },
+  importcode() { importCode(); },
+  soundtoggle() { st.set.sound = !st.set.sound; save(); refreshView(); },
+  resetgame() { if (confirm('Сбросить весь прогресс: баланс, инвентарь, статистику? Это нельзя отменить.')) { st = DEF(); save(); upSel.clear(); upTarget = null; ui.inv.sel.clear(); ui.ct.clear(); toast('Прогресс сброшен'); render(); } }
+};
+document.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (!el || !H[el.dataset.act]) return; if (el.tagName === 'A') e.preventDefault(); H[el.dataset.act](el.dataset.arg, el, e); });
+document.addEventListener('pointerdown', (e) => { if (e.target.closest('#clk')) { e.preventDefault(); holdStart(e); } });
+['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => document.addEventListener(t, (e) => { if (holdIv || holdTo) stopHold(); }, true));
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('#clk')) e.preventDefault(); });
+document.addEventListener('keydown', (e) => {
+  if (route.page !== 'farm' || $('#ov')) return; if (e.code !== 'Space' && e.code !== 'Enter') return;
+  const tag = (document.activeElement && document.activeElement.tagName) || ''; if (/INPUT|TEXTAREA|SELECT/.test(tag)) return; const b = $('#clk'); if (!b) return; e.preventDefault();
+  const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+  if (!e.repeat) { tap(x, y); b.classList.add('held'); } else { const n = performance.now(); if (n - keyHold > HOLD_EVERY) { keyHold = n; holdTick(x, y); } }
+});
+document.addEventListener('keyup', (e) => { const b = $('#clk'); if (b && (e.code === 'Space' || e.code === 'Enter')) b.classList.remove('held'); });
+function refocus(id) { const e = document.getElementById(id); if (e) { e.focus(); try { e.setSelectionRange(e.value.length, e.value.length); } catch (_) { /* number */ } } }
+document.addEventListener('input', (e) => {
+  const t = e.target; const id = t.id;
+  if (t.dataset && t.dataset.tmp) { const [k, i] = t.dataset.tmp.split('.'); tmpSet[k][+i] = +t.value; return; }
+  if (id === 'caseq') { ui.cq = t.value; refreshView(); refocus(id); }
+  else if (id === 'cq') { ui.cat.q = t.value; ui.cat.page = 1; refreshView(); refocus(id); }
+  else if (id === 'stkIn') setStakeBal(t.value);
+  else if (id === 'pIn') priceList();
+  else if (id === 'uq') { upf.q = t.value; upLimit = 40; renderUpList(true); }
+  else if (id === 'umin') { upf.min = t.value; upLimit = 40; renderUpList(true); }
+  else if (id === 'umax') { upf.max = t.value; upLimit = 40; renderUpList(true); }
+});
+document.addEventListener('change', (e) => {
+  const id = e.target.id, v = e.target.value;
+  if (id === 'casesort') { ui.csort = v; refreshView(); }
+  else if (id === 'invsort') { ui.inv.sort = v; refreshView(); } else if (id === 'invtier') { ui.inv.tier = v; refreshView(); }
+  else if (id === 'ctier') { ui.cat.tier = v; ui.cat.page = 1; refreshView(); } else if (id === 'ccat') { ui.cat.cat = v; ui.cat.page = 1; refreshView(); } else if (id === 'csortc') { ui.cat.sort = v; ui.cat.page = 1; refreshView(); }
+  else if (id === 'ucat') { upf.cat = v; upLimit = 40; renderUpList(true); } else if (id === 'usort') { upf.sort = v; renderUpList(true); }
+});
+window.addEventListener('hashchange', () => { if (!spinning) render(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+window.addEventListener('beforeunload', save);
+
+/* ================= запуск ================= */
+async function boot() {
+  DATA.ready = false; loadFailed = ''; render();
+  try {
+    loadMsg = 'Загружаем каталог скинов (это около 5–10 МБ, только при запуске)…'; render();
+    const skins = await getJSON('skins.json');
+    loadMsg = 'Загружаем кейсы…'; render();
+    let crates = []; try { crates = await getJSON('crates.json'); } catch (e) { crates = []; }
+    loadMsg = 'Собираем кейсы…'; render(); await sleep(20);
+    DATA.items.length = 0; DATA.byKey.clear(); DATA.estCount = 0; DATA.liveCount = 0; UPALL = null; QP = null;
+    buildCatalog(skins); genCases(crates);
+    if (!DATA.items.length || !CASES.length) throw new Error('Источник вернул пустой каталог');
+    DATA.ready = true;
+  } catch (e) { loadFailed = (e && e.message) || 'Ошибка загрузки'; }
+  render(); if (DATA.ready) refreshSkinport();
+}
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) { /* не критично */ }
+boot();
+
+
+</script>
+</body>
+</html>
